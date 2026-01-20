@@ -1,0 +1,145 @@
+# Re-Entry Predictor
+# Estimate the landing distance (downrange) from the Kármán line (100 km altitude)
+
+import numpy as np
+from datetime import timedelta
+
+# =================================================================
+# 1. CONSTANTS (Fixed Physics)
+# =================================================================
+R_EARTH = 6371000.0      # m
+G = 9.81                 # m/s^2
+RHO_0 = 1.225            # kg/m^3
+H_SCALE = 8500.0         # m
+EARTH_ROT_SPEED = 7.2921e-5 # rad/s
+KARMAN_LINE = 100000.0   # 100km
+K_SG = 1.7415e-4         # Sutton-Graves Heating Constant
+
+# =================================================================
+# 2. USER INPUTS & MISSION CONFIGURATION
+# =================================================================
+# Payload
+PAYLOAD_MASS_KG = 24.0   # The "box" (12U CubeSat)
+TPS_DENSITY = 480.0      # kg/m^3 (Ablative material)
+TPS_THICKNESS = 0.04     # 4cm safety thickness
+
+# Mission Insertion
+START_ALT_KM = 300.0     # Starting at 300km
+START_VEL = 7650.0       # m/s
+ENTRY_ANGLE_DEG = 6.2    # Entry flight path angle
+HEADING_DEG = 90.0       # Due East
+
+# Targeting
+TARGET_LAT = 28.47       # Landing Latitude (e.g., Florida)
+TARGET_LON = -80.57      # Landing Longitude
+RECOVERY_TOL_KM = 15.0   # Max allowed landing dispersion
+
+# Simulation Control
+NUM_MONTE_CARLO = 50     # Number of runs for uncertainty
+ATM_VARIANCE = 0.08      # 8% atmospheric noise
+
+# =================================================================
+# 3. CORE PHYSICS & THERMAL ENGINE
+# =================================================================
+def get_density(altitude, variance=1.0):
+    if altitude > KARMAN_LINE: return 0.0
+    return (RHO_0 * variance) * np.exp(-altitude / H_SCALE)
+
+def run_simulation(m_payload, diameter, cd, v_init, gamma_deg, h_start_km, lat_start, lon_start, atm_var):
+    # Setup Mass & Area
+    area = np.pi * (diameter / 2)**2
+    shield_mass = (area * TPS_THICKNESS) * TPS_DENSITY
+    total_mass = m_payload + shield_mass
+    
+    # State Vars
+    h = h_start_km * 1000.0
+    v, gamma = v_init, np.radians(gamma_deg)
+    lat, lon = np.radians(lat_start), np.radians(lon_start)
+    
+    dt = 0.5
+    t, max_g, max_q_dot = 0.0, 0.0, 0.0
+    k_data = None
+
+    while h > 0:
+        rho = get_density(h, atm_var)
+        
+        # Karman Crossing Capture
+        if h <= KARMAN_LINE and k_data is None:
+            k_data = {"v": v, "lat": np.degrees(lat), "lon": np.degrees(lon - (EARTH_ROT_SPEED * t))}
+
+        # Deceleration & Thermal
+        q_dyn = 0.5 * rho * v**2
+        accel_drag = q_dyn / (total_mass / (cd * area))
+        max_g = max(max_g, accel_drag / G)
+        
+        if h < KARMAN_LINE:
+            q_dot = (K_SG * np.sqrt(rho / (diameter/2)) * (v**3)) / 10000.0
+            max_q_dot = max(max_q_dot, q_dot)
+
+        # Kinematics
+        v += (-accel_drag + G * np.sin(gamma)) * dt
+        ds = v * np.cos(gamma) * dt
+        lat += (ds * np.cos(np.radians(HEADING_DEG))) / R_EARTH
+        lon += (ds * np.sin(np.radians(HEADING_DEG))) / (R_EARTH * np.cos(lat))
+        h -= v * np.sin(gamma) * dt
+        t += dt
+        if v < 25: break 
+
+    final_lon = np.degrees(lon - (EARTH_ROT_SPEED * t))
+    return np.degrees(lat), final_lon, t, max_g, max_q_dot, k_data, total_mass
+
+# =================================================================
+# 4. EXECUTION & OUTPUT GENERATION
+# =================================================================
+print(f"--- INITIATING MISSION DESIGN STUDY ---\n")
+
+# A. TARGETING SOLVER (Find where to start)
+# We use nominal values to find the start point
+nominal_d = 0.8 # Assume 0.8m shield for targeting
+entry_lon_guess = TARGET_LON - 22.5 # Initial geometric guess
+
+for _ in range(10): # Iterative convergence
+    la, lo, dur, g, q, k, tm = run_simulation(PAYLOAD_MASS_KG, nominal_d, 1.5, START_VEL, ENTRY_ANGLE_DEG, START_ALT_KM, TARGET_LAT, entry_lon_guess, 1.0)
+    error_lon = TARGET_LON - lo
+    entry_lon_guess += error_lon
+    if abs(error_lon) < 0.01: break
+
+# B. TRADE STUDY LOOP (Varying Diameter)
+diameters = [0.4, 0.7, 1.0, 1.3]
+trade_results = []
+
+for d in diameters:
+    # Run Monte Carlo for each diameter
+    lats, lons, gs, qs = [], [], [], []
+    for _ in range(NUM_MONTE_CARLO):
+        atm_rand = 1.0 + np.random.uniform(-ATM_VARIANCE, ATM_VARIANCE)
+        la, lo, dur, g, q, k, tm = run_simulation(PAYLOAD_MASS_KG, d, 1.5, START_VEL, ENTRY_ANGLE_DEG, START_ALT_KM, TARGET_LAT, entry_lon_guess, atm_rand)
+        lats.append(la); lons.append(lo); gs.append(g); qs.append(q)
+    
+    # Calculate Efficiency Score
+    mes = (PAYLOAD_MASS_KG / tm) * 100
+    # Landing dispersion (3-Sigma)
+    dispersion = (np.std(lons) * 111.0 * np.cos(np.radians(TARGET_LAT))) * 3
+
+    trade_results.append({
+        "dia": d, "g": np.mean(gs), "q": np.mean(qs), "mes": mes, "disp": dispersion
+    })
+
+# =================================================================
+# 5. FINAL REPORTING
+# =================================================================
+print(f"REENTRY TARGETING:")
+print(f"  Deorbit Point:   Lat {TARGET_LAT}, Lon {entry_lon_guess:.4f}")
+print(f"  Interface Vel:   {k['v']:.2f} m/s @ 100km\n")
+
+print(f"{'Dia (m)':<8} | {'Peak G':<8} | {'Heat Flux':<10} | {'MES %':<8} | {'Disp (km)':<10}")
+print("-" * 55)
+for r in trade_results:
+    print(f"{r['dia']:<8.1f} | {r['g']:<8.1f} | {r['q']:<10.1f} | {r['mes']:<8.1f} | {r['disp']:<10.2f}")
+
+print(f"\nSAFETY ADVISORY:")
+best_design = trade_results[1] # Looking at 0.7m as example
+if best_design['disp'] < RECOVERY_TOL_KM:
+    print(f"  [PASS] 0.7m Design dispersion ({best_design['disp']:.2f}km) is within tolerance.")
+else:
+    print(f"  [FAIL] High dispersion. Increase shield size or steepen entry angle.")
