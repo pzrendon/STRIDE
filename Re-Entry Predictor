@@ -16,7 +16,7 @@ KARMAN_LINE, K_SG, ROT_SPEED = 100000.0, 1.7415e-4, 7.2921e-5
 # =================================================================
 # 2. USER CONFIGURATION PANEL
 # =================================================================
-MISSION_NAME = "Phoenix_Ultra_Unified"
+MISSION_NAME = "STRIDE_Re-Entry_Predictor"
 
 PAYLOAD_MASS_KG = 24.0
 START_ALT_KM, START_VEL_MPS = 300.0, 7650.0
