@@ -1,6 +1,6 @@
 #Post-Undergraduate-Interests-Projects
 
-STRIDE: Supersonic Transport and Reusable Integrated Design and Engineering
+STRIDE: Supersonic+ Transport and Reusable Integrated Design and Engineering
 
 STRIDE is an evolving aerospace engineering toolkit focused on the conceptual design and analysis of supersonic and hypersonic transport systems with an emphasis on reusable integrated engine architectures and trajectory analysis.
 
