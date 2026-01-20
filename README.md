@@ -11,7 +11,7 @@ Project Vision: Modern high speed flight systems sit at the intersection of prop
 Core Focus Areas
 1. Re-Entry Predictor (aka Sea Turtle): Trajectory solvers and mission level tools for ascent, boost, cruise, and entry profiles. This includes mass fraction sensitivity, energy management, and guidance level trade studies suitable for reusable launch and high speed transport concepts.
 2. Integrated Engine Design (aka Marlin): Tools for modeling and comparing reusable propulsion concepts including turbo based combined cycle, ramjet and scramjet assisted systems, and rocket augmented architectures. Emphasis is placed on mode transition logic, operating envelopes, and system level performance trends rather than component level CFD.
-3. System Level Trade Studies: Parametric analysis tools to explore how propulsion choices, vehicle mass properties, and mission requirements interact. STRIDE is designed to support rapid iteration during the conceptual and preliminary design phases.
+3. System Level Trade Studies (aka Dolphin): Parametric analysis tools to explore how propulsion choices, vehicle mass properties, and mission requirements interact. STRIDE is designed to support rapid iteration during the conceptual and preliminary design phases.
 
 Current Status: STRIDE is under active development and should be considered an early stage research and engineering project. Initial efforts are focused on building a robust foundation for trajectory analysis and propulsion performance modeling, with additional capabilities added incrementally. The architecture is intentionally modular to allow future expansion into areas such as thermal constraints, reentry heating approximations, and high level structural mass estimation.
 
