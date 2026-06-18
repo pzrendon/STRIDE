@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { useMemo } from "react";
+import { useMemo, type ReactElement } from "react";
 import * as THREE from "three";
 import type { SimulationResult } from "@/lib/marlin/types";
 
@@ -33,7 +33,7 @@ function Grid() {
       transparent: true,
       opacity: 0.35
     });
-    const items: JSX.Element[] = [];
+    const items: ReactElement[] = [];
 
     for (let x = -4; x <= 4; x += 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints([
