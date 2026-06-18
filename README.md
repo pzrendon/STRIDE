@@ -38,6 +38,9 @@ Planned and potential features include:
 5. Visualization tools for trajectories and design trade spaces
 The roadmap will evolve as the project matures.
 
+Milestone Documents
+- [Marlin Conceptual Requirements and Product Specification](docs/marlin-conceptual-requirements.md): Defines the initial mission-design workflow, vehicle scope, physics-model boundaries, outputs, and clickable prototype acceptance criteria for Marlin.
+
 
 Disclaimer
 STRIDE is a personal engineering project developed for under personal learning interests, career outlooks and conceptual purposes only. Results should not be used for operational or safety critical applications.
