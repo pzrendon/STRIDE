@@ -41,6 +41,11 @@ The roadmap will evolve as the project matures.
 Milestone Documents
 - [Marlin Conceptual Requirements and Product Specification](docs/marlin-conceptual-requirements.md): Defines the initial mission-design workflow, vehicle scope, physics-model boundaries, outputs, and clickable prototype acceptance criteria for Marlin.
 
+Marlin Web Prototype
+- The repository now includes a root-level Next.js prototype for Marlin's first rocket plus aerodynamic glide mission workflow.
+- Run `npm install` and `npm run dev` to start the local web app.
+- Run `npm run build` to type-check and build the prototype.
+
 
 Disclaimer
 STRIDE is a personal engineering project developed for under personal learning interests, career outlooks and conceptual purposes only. Results should not be used for operational or safety critical applications.
