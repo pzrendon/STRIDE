@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="STRIDE — Supersonic+ Transport and Reusable Integrated Design and Engineering. A modular aerospace toolkit for conceptual design of high-speed and reusable flight systems."
+    />
+    <!--
+      Content-Security-Policy for static hosts that cannot set HTTP headers
+      (e.g. GitHub Pages). For Netlify / Cloudflare Pages the stronger header
+      version in web/_headers takes precedence.
+      'self' only: no third-party scripts, styles, or connections are allowed.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>STRIDE — Supersonic+ Transport &amp; Reusable Integrated Design</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="js/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="#top">
+          <span class="brand-mark">◤</span>
+          <span class="brand-text">STRIDE</span>
+        </a>
+        <nav class="nav">
+          <a href="#focus">Focus areas</a>
+          <a href="#tool">Re-Entry Predictor</a>
+          <a href="#philosophy">Philosophy</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="wrap">
+          <p class="eyebrow">Supersonic+ Transport · Reusable Integrated Design · Engineering</p>
+          <h1>
+            A modular toolkit for the conceptual design of
+            <span class="accent">high-speed &amp; reusable</span> flight systems.
+          </h1>
+          <p class="lede">
+            STRIDE bridges propulsion, aerodynamics, structures, and mission
+            design into a unified environment for exploring how engine choices
+            interact with vehicle performance across ascent, cruise, and entry.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#tool">Launch the Re-Entry Predictor</a>
+            <a class="btn btn-ghost" href="#focus">Explore focus areas</a>
+          </div>
+          <p class="badge-row">
+            <span class="pill">Physics-informed first-order models</span>
+            <span class="pill">Runs entirely in your browser</span>
+            <span class="pill">No accounts · No tracking</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- FOCUS AREAS -->
+      <section id="focus" class="section">
+        <div class="wrap">
+          <h2 class="section-title">Core focus areas</h2>
+          <p class="section-sub">
+            STRIDE is a growing collection of interoperable tools, not a single
+            monolithic solver.
+          </p>
+          <div class="cards">
+            <article class="card">
+              <div class="card-tag">Sea Turtle</div>
+              <h3>Re-Entry Predictor</h3>
+              <p>
+                Trajectory solvers and mission-level tools for ascent, boost,
+                cruise, and entry profiles — mass-fraction sensitivity, energy
+                management, and guidance-level trade studies.
+              </p>
+              <a class="card-link" href="#tool">Try it now →</a>
+            </article>
+            <article class="card">
+              <div class="card-tag">Marlin</div>
+              <h3>Integrated Engine Design</h3>
+              <p>
+                Model and compare reusable propulsion concepts — turbo-based
+                combined cycle, ramjet/scramjet-assisted, and rocket-augmented
+                architectures — with a focus on mode-transition logic and
+                operating envelopes.
+              </p>
+              <span class="card-link muted-link">On the roadmap</span>
+            </article>
+            <article class="card">
+              <div class="card-tag">Dolphin</div>
+              <h3>System-Level Trade Studies</h3>
+              <p>
+                Parametric analysis of how propulsion choices, vehicle mass
+                properties, and mission requirements interact — built for rapid
+                iteration during conceptual and preliminary design.
+              </p>
+              <span class="card-link muted-link">On the roadmap</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOL -->
+      <section id="tool" class="section section-alt">
+        <div class="wrap">
+          <h2 class="section-title">Re-Entry Predictor <span class="alias">(Sea Turtle)</span></h2>
+          <p class="section-sub">
+            Estimate deceleration, heating, and survivability for an entry from
+            the Kármán line. A 2-DOF point-mass model with an exponential
+            atmosphere and Sutton–Graves-style stagnation heating. Everything is
+            computed live in your browser.
+          </p>
+
+          <div class="tool-grid">
+            <!-- INPUTS -->
+            <form class="panel inputs" onsubmit="return false">
+              <h3 class="panel-title">Configuration</h3>
+
+              <fieldset>
+                <legend>Vehicle &amp; entry state</legend>
+                <label>Payload mass (kg)
+                  <input id="payloadMassKg" type="number" step="0.1" value="24" />
+                </label>
+                <label>Start altitude (km)
+                  <input id="startAltKm" type="number" step="1" value="300" />
+                </label>
+                <label>Entry velocity (m/s)
+                  <input id="startVelMps" type="number" step="10" value="7650" />
+                </label>
+                <label>Entry angle (deg)
+                  <input id="entryAngleDeg" type="number" step="0.05" value="3.75" />
+                </label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Aerodynamics</legend>
+                <label>Shield C<sub>d</sub>
+                  <input id="shieldCd" type="number" step="0.05" value="1.5" />
+                </label>
+                <label>Chute C<sub>d</sub>
+                  <input id="chuteCd" type="number" step="0.05" value="1.8" />
+                </label>
+                <label>Chute deploy alt (m)
+                  <input id="chuteDeployAltM" type="number" step="100" value="5000" />
+                </label>
+                <label>Shock factor ×
+                  <input id="shockFactorX" type="number" step="0.1" value="1.6" />
+                </label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Thermal protection &amp; target</legend>
+                <label>TPS density (kg/m³)
+                  <input id="tpsDensity" type="number" step="10" value="480" />
+                </label>
+                <label>TPS thickness (m)
+                  <input id="tpsThickness" type="number" step="0.005" value="0.05" />
+                </label>
+                <label>Target latitude (deg)
+                  <input id="targetLat" type="number" step="0.01" value="28.47" />
+                </label>
+                <label>Target longitude (deg)
+                  <input id="targetLon" type="number" step="0.01" value="-80.57" />
+                </label>
+              </fieldset>
+
+              <div class="btn-row">
+                <button id="run-btn" type="button" class="btn btn-primary">Run simulation</button>
+                <button id="reset-btn" type="button" class="btn btn-ghost">Reset</button>
+              </div>
+              <p id="run-status" class="run-status" aria-live="polite"></p>
+            </form>
+
+            <!-- OUTPUTS -->
+            <div class="panel outputs">
+              <h3 class="panel-title">Parametric study</h3>
+              <p class="panel-note">
+                Sweeps heat-shield diameters (0.8 / 1.2 / 1.8 m) × chute
+                diameters (3.0 / 5.0 m) at the configured entry angle.
+              </p>
+              <div class="table-scroll">
+                <table class="results">
+                  <thead>
+                    <tr>
+                      <th>Shield (m)</th>
+                      <th>Chute (m)</th>
+                      <th>β</th>
+                      <th>Space phase</th>
+                      <th>Air phase</th>
+                      <th>Max G</th>
+                      <th>Shock G</th>
+                      <th>Heat</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="results-body"></tbody>
+                </table>
+              </div>
+
+              <div class="charts">
+                <canvas id="chart-decel" class="chart" role="img"
+                  aria-label="Deceleration vs altitude chart"></canvas>
+                <canvas id="chart-thermal" class="chart" role="img"
+                  aria-label="Heat flux vs altitude chart"></canvas>
+              </div>
+
+              <h3 class="panel-title">Engineer's recommendations</h3>
+              <ul id="recommendations" class="recs"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHILOSOPHY -->
+      <section id="philosophy" class="section">
+        <div class="wrap two-col">
+          <div>
+            <h2 class="section-title">Design philosophy</h2>
+            <ul class="check">
+              <li>Physics-informed first-order models over black-box solvers.</li>
+              <li>Transparency and clarity in assumptions.</li>
+              <li>Modular design for easy extension and reuse.</li>
+              <li>Emphasis on insight and trade-space exploration.</li>
+            </ul>
+            <p class="muted">
+              STRIDE is intended to complement higher-fidelity tools, not
+              replace them.
+            </p>
+          </div>
+          <div>
+            <h2 class="section-title">Intended use</h2>
+            <ul class="check">
+              <li>Conceptual vehicle design studies.</li>
+              <li>Propulsion and mission trade analysis.</li>
+              <li>Educational and research projects.</li>
+              <li>Demonstrating system-level aerospace capability.</li>
+            </ul>
+            <p class="muted">
+              Not intended for flight certification or detailed component design.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p class="disclaimer">
+          <strong>Disclaimer.</strong> STRIDE is a personal engineering project
+          developed for personal learning, career, and conceptual purposes only.
+          Results should not be used for operational or safety-critical
+          applications.
+        </p>
+        <p class="copyright">STRIDE · Supersonic+ Transport and Reusable Integrated Design and Engineering</p>
+      </div>
+    </footer>
+  </body>
+</html>

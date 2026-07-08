@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # GitHub Actions workflows (relevant once CI/deploy workflows are added).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  # NOTE: The web/ site currently ships no runtime dependencies.
+  # When you add a package.json (npm) or requirements.txt (pip), add an
+  # entry here pointing at its directory, e.g.:
+  #
+  # - package-ecosystem: "npm"
+  #   directory: "/web"
+  #   schedule:
+  #     interval: "weekly"
