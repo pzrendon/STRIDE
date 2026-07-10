@@ -124,7 +124,9 @@ function renderTable(rows) {
       const td = document.createElement("td");
       td.textContent = text;
       if (i === cells.length - 1) {
-        td.className = r.status === "PASS" ? "pass" : "fail";
+        if (r.status === "PASS") td.className = "pass";
+        else if (r.status === "SKIP") td.className = "skip";
+        else td.className = "fail";
       }
       tr.appendChild(td);
     });
@@ -146,19 +148,29 @@ function renderRecommendations(study, cfg) {
   msgs.push(
     `Deorbit burn target: Lat ${cfg.targetLat.toFixed(2)}, Long ${study.deorbitLon.toFixed(4)}.`,
   );
+  msgs.push(
+    `Allen–Eggers teaching check (V, γ): ≈ ${Number(study.allenEggersG).toFixed(2)} G.`,
+  );
   if (study.steepestFeasible) {
     msgs.push(
       `Steepest survivable entry angle (11.9 G limit): ${study.steepestAngle.toFixed(3)}°.`,
     );
   } else {
     msgs.push(
-      `No angle in the 0.5–10° search stays under 11.9 G for the reference shield/chute (shallow probe ≈ ${Number(study.shallowG).toFixed(1)} G). This no-lift ballistic model is intentionally harsh — compare configurations relatively.`,
+      `No angle in the search stays under 11.9 G for the reference shield/chute (shallow probe ≈ ${Number(study.shallowG).toFixed(1)} G).`,
+    );
+  }
+
+  const skips = study.rows.filter((r) => r.status === "SKIP");
+  if (skips.length) {
+    msgs.push(
+      `${skips.length} configuration(s) SKIPPED (lofted). Steepen the entry angle or reduce entry speed to capture.`,
     );
   }
 
   if (worst.g > 12) {
     msgs.push(
-      `Peak G-load of ${worst.g.toFixed(1)} exceeds the 12 G teaching limit. Try a larger heat shield, lower entry speed, or study how real vehicles add lift to lengthen the deceleration pulse.`,
+      `Peak ballistic G-load of ${worst.g.toFixed(1)} exceeds the 12 G teaching limit. Shallow the entry angle (Allen–Eggers ∝ sin|γ|) or lower entry speed.`,
     );
   }
   if (worstShock.shock > 12) {
@@ -166,7 +178,10 @@ function renderRecommendations(study, cfg) {
       `Parachute opening shock (${worstShock.shock.toFixed(1)} G) can snap shroud lines. Increase deployment altitude or use a smaller main chute.`,
     );
   }
-  if (worst.g <= 12 && worstShock.shock <= 12) {
+  if (
+    study.rows.every((r) => r.status === "PASS") &&
+    study.rows.length > 0
+  ) {
     msgs.push("All tested configurations are within structural limits.");
   }
 
@@ -422,6 +437,7 @@ function exportJson() {
     steepestAngle: lastStudy.steepestAngle,
     steepestFeasible: lastStudy.steepestFeasible,
     shallowG: lastStudy.shallowG,
+    allenEggersG: lastStudy.allenEggersG,
     rows: lastStudy.rows,
   };
   downloadBlob(

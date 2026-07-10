@@ -30,6 +30,17 @@ and ES-module JavaScript.
   CSV/JSON export of the parametric study.
 - Inline field help and an assumptions panel document the first-order model.
 
+### Physics model (Sea Turtle)
+
+No-lift planar ballistic entry in `(h, V, γ)`:
+
+- drag only (`L/D = 0`), exponential atmosphere, inverse-square gravity
+- midpoint (RK2) integration with a variable time step
+- peak G from heat-shield aero; chute opening shock reported separately
+- Allen–Eggers closed-form peak-G teaching check
+- Sutton–Graves-style stagnation heat-flux estimate
+- `SKIP` status when a shallow/high-energy trajectory lofts instead of capturing
+
 ## Run locally
 
 Because it uses ES modules, open it through a local server (not `file://`):

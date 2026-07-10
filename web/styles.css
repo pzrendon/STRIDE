@@ -10,6 +10,7 @@
   --accent-2: #60a5fa;
   --pass: #34d399;
   --fail: #f87171;
+  --warning: #fbbf24;
   --radius: 14px;
   --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
   --maxw: 1160px;
@@ -354,6 +355,10 @@ legend {
 }
 .results td.fail {
   color: var(--fail);
+  font-weight: 700;
+}
+.results td.skip {
+  color: var(--warning, #fbbf24);
   font-weight: 700;
 }
 
