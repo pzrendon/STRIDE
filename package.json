@@ -1,0 +1,31 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.6.1",
+    "next": "^16.2.9",
+    "plotly.js-dist-min": "^3.6.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-plotly.js": "^3.0.0",
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "@types/plotly.js": "^3.0.10",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-plotly.js": "^2.6.4",
+    "@types/three": "^0.184.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.9",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  }
+}
