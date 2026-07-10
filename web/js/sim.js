@@ -69,6 +69,8 @@ export function runMasterSim(cfg, sDia, pDia, gammaIn) {
     maxG = 0,
     maxQ = 0,
     shockG = 0,
+    altMaxG = 0,
+    altMaxQ = 0,
     kReached = false;
 
   const altLog = [];
@@ -112,12 +114,18 @@ export function runMasterSim(cfg, sDia, pDia, gammaIn) {
     h -= vz * dt;
 
     const curG = dragA / C.G_ACCEL;
-    if (curG > maxG) maxG = curG;
+    if (curG > maxG) {
+      maxG = curG;
+      altMaxG = h / 1000;
+    }
 
     let qDot = 0;
     if (h < C.KARMAN_LINE) {
       qDot = (C.K_SG * Math.sqrt(rho / (sDia / 2)) * vMag ** 3) / 10000.0;
-      if (qDot > maxQ) maxQ = qDot;
+      if (qDot > maxQ) {
+        maxQ = qDot;
+        altMaxQ = h / 1000;
+      }
     }
 
     if (stepCount % 20 === 0) {
@@ -140,6 +148,8 @@ export function runMasterSim(cfg, sDia, pDia, gammaIn) {
     g: maxG,
     q: maxQ,
     shock: shockG,
+    altMaxG,
+    altMaxQ,
     alt: altLog,
     gArr: gLog,
     qArr: qLog,
@@ -162,23 +172,28 @@ export function solveDeorbitLongitude(cfg) {
   return eLon;
 }
 
-/** Binary search for the steepest survivable entry angle (< 11.9 G). */
+/**
+ * Binary search for the steepest survivable entry angle (< 11.9 G).
+ * Returns { angle, feasible }. When the shallowest probe still exceeds the
+ * G proxy (common for this no-lift ballistic model), feasible is false.
+ */
 export function solveSteepestAngle(cfg) {
+  const shield = cfg.testShieldDiams[Math.min(1, cfg.testShieldDiams.length - 1)];
+  const chute = cfg.testChuteDiams[0];
+  const shallow = runMasterSim(cfg, shield, chute, 0.5);
+  if (shallow.g >= 11.9) {
+    return { angle: 0.5, feasible: false, shallowG: shallow.g };
+  }
   let lo = 0.5,
     hi = 10.0,
     mid = (lo + hi) / 2;
   for (let i = 0; i < 12; i++) {
     mid = (lo + hi) / 2;
-    const res = runMasterSim(
-      cfg,
-      cfg.testShieldDiams[1],
-      cfg.testChuteDiams[0],
-      mid,
-    );
+    const res = runMasterSim(cfg, shield, chute, mid);
     if (res.g < 11.9) lo = mid;
     else hi = mid;
   }
-  return mid;
+  return { angle: mid, feasible: true, shallowG: shallow.g };
 }
 
 /** Build the full parametric study across shield/chute diameters. */
@@ -200,6 +215,8 @@ export function runStudy(cfg) {
         g: r.g,
         shock: r.shock,
         q: r.q,
+        altMaxG: r.altMaxG,
+        altMaxQ: r.altMaxQ,
         status: surv,
       });
 
@@ -210,12 +227,15 @@ export function runStudy(cfg) {
     }
   }
 
+  const steepest = solveSteepestAngle(cfg);
   return {
     rows,
     decelSeries,
     thermalSeries,
     deorbitLon: solveDeorbitLongitude(cfg),
-    steepestAngle: solveSteepestAngle(cfg),
+    steepestAngle: steepest.angle,
+    steepestFeasible: steepest.feasible,
+    shallowG: steepest.shallowG,
   };
 }
 

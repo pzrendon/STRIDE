@@ -15,11 +15,20 @@ web/
 └── js/
     ├── sim.js      # physics engine (ported from the Python reference)
     ├── plot.js     # dependency-free canvas line charts
-    └── app.js      # UI wiring, input validation, rendering
+    ├── learn.js    # presets, glossary, study modules, run narratives
+    └── app.js      # UI wiring, Learn/Research modes, export
 ```
 
 Zero build step and zero third-party runtime dependencies — plain HTML, CSS,
 and ES-module JavaScript.
+
+### Learning & research UX
+
+- **Learn mode** — guided presets, concept glossary, self-study modules, and a
+  plain-language “what just happened” narrative after each run.
+- **Research mode** — custom shield/chute diameter sweeps, targeting knobs, and
+  CSV/JSON export of the parametric study.
+- Inline field help and an assumptions panel document the first-order model.
 
 ## Run locally
 
