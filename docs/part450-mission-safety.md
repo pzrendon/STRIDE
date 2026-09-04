@@ -52,7 +52,7 @@ Vehicle + CONOPS
 | Constraints | `lib/part450/constraints.ts` | Corridor, keep-out polygon, recovery circle. |
 | Compliance | `lib/part450/compliance.ts` | JSON-serializable matrix. |
 | Report | `lib/part450/report.ts` | The 13-section markdown dump. |
-| Dashboard | `app/part450/page.tsx` | Same visual language as Marlin (Plotly, dark panels). |
+| Dashboard | `app/part450/page.tsx` | Same dark-panel language as Marlin. Ground track is an SVG sketch (Plotly stays on Marlin). |
 
 ## What is actually calculated (MVP)
 
