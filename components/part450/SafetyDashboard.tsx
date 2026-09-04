@@ -1,8 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useMemo, useState, type ReactNode } from "react";
-import type { Config, Data, Layout } from "plotly.js";
 import {
   exampleReentryFailures,
   generateSafetyReport,
@@ -14,10 +12,111 @@ import {
 } from "@/lib/part450";
 import { formatNumber } from "@/lib/marlin/format";
 
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
-
-const PLOT_CONFIG: Partial<Config> = { displayModeBar: false, responsive: true };
 const FAIL_COLORS = ["#fc8181", "#f6ad55", "#d6bcfa", "#63b3ed", "#fbd38d", "#feb2b2", "#9ae6b4", "#90cdf4"];
+
+type LonLat = { lon: number; lat: number; label?: string; color: string; kind: "line" | "dash" | "mark" };
+
+function circleLatLon(lat: number, lon: number, radiusKm: number, steps = 72): { lat: number; lon: number }[] {
+  const points: { lat: number; lon: number }[] = [];
+  const d = radiusKm / 6371;
+  const lat1 = (lat * Math.PI) / 180;
+  const lon1 = (lon * Math.PI) / 180;
+  for (let i = 0; i <= steps; i += 1) {
+    const brng = (2 * Math.PI * i) / steps;
+    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(brng));
+    const lon2 =
+      lon1 +
+      Math.atan2(Math.sin(brng) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+    points.push({ lat: (lat2 * 180) / Math.PI, lon: (lon2 * 180) / Math.PI });
+  }
+  return points;
+}
+
+function downloadText(filename: string, text: string, type: string) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function GroundTrackSketch({
+  series
+}: {
+  series: { points: LonLat[]; label: string; color: string; kind: "line" | "dash" | "mark" }[];
+}) {
+  const all = series.flatMap((item) => item.points);
+  if (!all.length) {
+    return <p className="disclaimer">No ground-track samples.</p>;
+  }
+
+  const lons = all.map((p) => p.lon);
+  const lats = all.map((p) => p.lat);
+  let minLon = Math.min(...lons);
+  let maxLon = Math.max(...lons);
+  let minLat = Math.min(...lats);
+  let maxLat = Math.max(...lats);
+  const padLon = Math.max((maxLon - minLon) * 0.08, 0.15);
+  const padLat = Math.max((maxLat - minLat) * 0.08, 0.15);
+  minLon -= padLon;
+  maxLon += padLon;
+  minLat -= padLat;
+  maxLat += padLat;
+
+  const w = 900;
+  const h = 420;
+  const m = { l: 52, r: 16, t: 16, b: 40 };
+  const x = (lon: number) => m.l + ((lon - minLon) / (maxLon - minLon)) * (w - m.l - m.r);
+  const y = (lat: number) => m.t + ((maxLat - lat) / (maxLat - minLat)) * (h - m.t - m.b);
+  const toPath = (points: LonLat[]) => {
+    const stride = Math.max(1, Math.floor(points.length / 240));
+    const picked = points.filter((_, i) => i % stride === 0 || i === points.length - 1);
+    return picked.map((p, i) => `${i === 0 ? "M" : "L"} ${x(p.lon).toFixed(1)} ${y(p.lat).toFixed(1)}`).join(" ");
+  };
+
+  return (
+    <svg className="geo-sketch" viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Ground track sketch">
+      <rect x={m.l} y={m.t} width={w - m.l - m.r} height={h - m.t - m.b} fill="rgba(255,255,255,0.03)" stroke="rgba(174,207,255,0.18)" />
+      <text x={w / 2} y={h - 10} fill="#9db3cc" fontSize="12" textAnchor="middle">
+        longitude [deg]
+      </text>
+      <text x={16} y={h / 2} fill="#9db3cc" fontSize="12" transform={`rotate(-90 16 ${h / 2})`}>
+        latitude [deg]
+      </text>
+      <text x={m.l} y={h - 12} fill="#9db3cc" fontSize="11">
+        {minLon.toFixed(1)}
+      </text>
+      <text x={w - m.r} y={h - 12} fill="#9db3cc" fontSize="11" textAnchor="end">
+        {maxLon.toFixed(1)}
+      </text>
+      {series.map((item) =>
+        item.kind === "mark" ? (
+          <g key={item.label}>
+            {item.points.map((p, i) => (
+              <path
+                key={`${item.label}-${i}`}
+                d={`M ${x(p.lon) - 4} ${y(p.lat) - 4} L ${x(p.lon) + 4} ${y(p.lat) + 4} M ${x(p.lon) - 4} ${y(p.lat) + 4} L ${x(p.lon) + 4} ${y(p.lat) - 4}`}
+                stroke={item.color}
+                strokeWidth="1.6"
+              />
+            ))}
+          </g>
+        ) : (
+          <path
+            key={item.label}
+            d={toPath(item.points)}
+            fill="none"
+            stroke={item.color}
+            strokeWidth={item.kind === "line" ? 2.6 : 1.6}
+            strokeDasharray={item.kind === "dash" ? "5 4" : undefined}
+          />
+        )
+      )}
+    </svg>
+  );
+}
 
 function circleLatLon(lat: number, lon: number, radiusKm: number, steps = 72): { lat: number; lon: number }[] {
   const points: { lat: number; lon: number }[] = [];
@@ -73,64 +172,57 @@ export function SafetyDashboard() {
       ? circleLatLon(recovery.center.latitudeDeg, recovery.center.longitudeDeg, recovery.radiusKm)
       : [];
 
-  const groundTraces: Data[] = [
+  const sketchSeries = [
     {
-      x: assessment.nominal.samples.map((p) => p.longitudeDeg),
-      y: assessment.nominal.samples.map((p) => p.latitudeDeg),
-      name: "Nominal",
-      type: "scatter",
-      mode: "lines",
-      line: { color: "#4fd1c5", width: 3 }
+      label: "Nominal",
+      color: "#4fd1c5",
+      kind: "line" as const,
+      points: assessment.nominal.samples.map((p) => ({ lon: p.longitudeDeg, lat: p.latitudeDeg, color: "#4fd1c5", kind: "line" as const }))
     },
     ...assessment.failureRuns.map((run, index) => ({
-      x: run.trajectory.samples.map((p) => p.longitudeDeg),
-      y: run.trajectory.samples.map((p) => p.latitudeDeg),
-      name: run.scenario.id,
-      type: "scatter" as const,
-      mode: "lines" as const,
-      line: { color: FAIL_COLORS[index % FAIL_COLORS.length], width: 1.6, dash: "dot" as const }
+      label: run.scenario.id,
+      color: FAIL_COLORS[index % FAIL_COLORS.length],
+      kind: "dash" as const,
+      points: run.trajectory.samples.map((p) => ({
+        lon: p.longitudeDeg,
+        lat: p.latitudeDeg,
+        color: FAIL_COLORS[index % FAIL_COLORS.length],
+        kind: "dash" as const
+      }))
     })),
     {
-      x: assessment.debris.impacts.map((p) => p.longitudeDeg),
-      y: assessment.debris.impacts.map((p) => p.latitudeDeg),
-      name: "Debris / MC impacts",
-      type: "scatter",
-      mode: "markers",
-      marker: { color: "#fc8181", size: 9, symbol: "x" }
+      label: "Recovery zone",
+      color: "#68d391",
+      kind: "line" as const,
+      points: recoveryCircle.map((p) => ({ lon: p.lon, lat: p.lat, color: "#68d391", kind: "line" as const }))
     },
+    ...(keepOut?.polygon
+      ? [
+          {
+            label: "Keep-out",
+            color: "#f6ad55",
+            kind: "dash" as const,
+            points: [...keepOut.polygon, keepOut.polygon[0]].map((p) => ({
+              lon: p.longitudeDeg,
+              lat: p.latitudeDeg,
+              color: "#f6ad55",
+              kind: "dash" as const
+            }))
+          }
+        ]
+      : []),
     {
-      x: recoveryCircle.map((p) => p.lon),
-      y: recoveryCircle.map((p) => p.lat),
-      name: "Recovery zone",
-      type: "scatter",
-      mode: "lines",
-      line: { color: "#68d391", width: 2 }
+      label: "Debris / MC",
+      color: "#fc8181",
+      kind: "mark" as const,
+      points: assessment.debris.impacts.map((p) => ({
+        lon: p.longitudeDeg,
+        lat: p.latitudeDeg,
+        color: "#fc8181",
+        kind: "mark" as const
+      }))
     }
   ];
-
-  if (keepOut?.polygon) {
-    const poly = [...keepOut.polygon, keepOut.polygon[0]];
-    groundTraces.push({
-      x: poly.map((p) => p.longitudeDeg),
-      y: poly.map((p) => p.latitudeDeg),
-      name: "Keep-out (synthetic)",
-      type: "scatter",
-      mode: "lines",
-      line: { color: "#f6ad55", width: 2, dash: "dash" }
-    });
-  }
-
-  const layout: Partial<Layout> = {
-    autosize: true,
-    height: 460,
-    margin: { l: 54, r: 20, t: 12, b: 44 },
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "rgba(255,255,255,0.03)",
-    font: { color: "#dce9fa" },
-    xaxis: { title: { text: "longitude [deg]" }, gridcolor: "rgba(255,255,255,0.08)" },
-    yaxis: { title: { text: "latitude [deg]" }, gridcolor: "rgba(255,255,255,0.08)", scaleanchor: "x" },
-    legend: { orientation: "h", x: 0, y: 1.16 }
-  };
 
   const uniqueConstraintHits = new Map<string, (typeof assessment.constraintEvaluations)[number]>();
   for (const row of assessment.constraintEvaluations) {
@@ -263,11 +355,28 @@ export function SafetyDashboard() {
 
           <Panel title="Ground track, recovery zone, debris impacts">
             <p className="disclaimer">
-              Lon/lat from the planar Sea Turtle track. Debris markers are a canned fragment
+              Lon/lat sketch from the planar Sea Turtle track. Debris markers are a canned fragment
               inventory plus optional Cd Monte Carlo — conceptual, not a validated breakup model.
             </p>
-            <article className="plot-card full">
-              <Plot data={groundTraces} layout={layout} config={PLOT_CONFIG} style={{ width: "100%", height: "100%" }} />
+            <article className="plot-card full plot-card-geo">
+              <GroundTrackSketch series={sketchSeries} />
+              <div className="geo-legend">
+                <span>
+                  <i style={{ background: "#4fd1c5" }} /> Nominal
+                </span>
+                <span>
+                  <i style={{ background: "#68d391" }} /> Recovery zone
+                </span>
+                <span>
+                  <i style={{ background: "#f6ad55" }} /> Keep-out
+                </span>
+                <span>
+                  <i style={{ background: "#fc8181" }} /> Debris / MC
+                </span>
+                <span>
+                  <i style={{ background: "#d6bcfa" }} /> Off-nominal
+                </span>
+              </div>
             </article>
           </Panel>
 

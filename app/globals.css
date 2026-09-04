@@ -308,6 +308,34 @@ select {
   grid-column: 1 / -1;
 }
 
+.plot-card-geo {
+  min-height: 480px;
+}
+
+.geo-sketch {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.geo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 10px 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.geo-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 4px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
 .plot-card h3 {
   margin: 4px 8px 10px;
   color: #dce9fa;
