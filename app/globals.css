@@ -376,3 +376,112 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.site-nav a {
+  color: #c8d8ed;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.site-nav a.is-active {
+  color: var(--accent);
+}
+
+.site-nav-brand {
+  margin-right: 8px;
+  color: var(--text) !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem !important;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table-wrap th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pill.open,
+.status-pill.not_assessed {
+  color: var(--warning);
+}
+
+.status-pill.watching,
+.status-pill.in_work,
+.status-pill.analysis_complete {
+  color: var(--accent);
+}
+
+.status-pill.mitigated,
+.status-pill.evidence_available,
+.status-pill.accepted {
+  color: var(--success);
+}
+
+.status-pill.requires_external_evidence,
+.status-pill.not_applicable {
+  color: var(--muted);
+}
+
+.muted-block {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.text-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.text-btn:hover {
+  border-color: var(--accent);
+}
+
+.part450-metrics .metric-card span {
+  font-size: 1.15rem;
+  word-break: break-word;
+}
