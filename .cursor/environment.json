@@ -1,0 +1,15 @@
+{
+  "name": "STRIDE / Marlin prototype",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "marlin-web",
+      "command": "npm run dev"
+    },
+    {
+      "name": "stride-static-site",
+      "command": "python3 -m http.server 8000 --directory web"
+    }
+  ],
+  "ports": [3000, 8000]
+}
