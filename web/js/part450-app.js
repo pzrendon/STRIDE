@@ -203,6 +203,44 @@ function drawSketch(svg, assessment) {
   }
 }
 
+const STATUS_TAG = {
+  ANALYSIS_COMPLETE: "tag tag-ok",
+  REQUIRES_EXTERNAL_EVIDENCE: "tag tag-warn",
+  IN_WORK: "tag tag-info",
+};
+
+function humanStatus(status) {
+  return status.replace(/_/g, " ").toLowerCase();
+}
+
+// The placeholder CFR matrix is long and citation-heavy. Render the readable
+// requirement name up front, tuck the (still-PLACEHOLDER) citation into a muted
+// line, and show status as a colored pill so the table scans quickly.
+function renderCompliance(tbody, requirements) {
+  tbody.replaceChildren();
+  for (const req of requirements) {
+    const tr = document.createElement("tr");
+
+    const reqTd = document.createElement("td");
+    reqTd.appendChild(el("strong", null, req.title.replace(/^PLACEHOLDER:\s*/, "")));
+    const meta = el("div", "cell-meta");
+    meta.appendChild(el("span", "tag tag-ph", "PLACEHOLDER"));
+    meta.appendChild(el("small", "muted-block", `${req.id} · ${req.citation}`));
+    reqTd.appendChild(meta);
+    tr.appendChild(reqTd);
+
+    const toolTd = document.createElement("td");
+    toolTd.textContent = req.tool;
+    tr.appendChild(toolTd);
+
+    const statusTd = document.createElement("td");
+    statusTd.appendChild(el("span", STATUS_TAG[req.status] ?? "tag", humanStatus(req.status)));
+    tr.appendChild(statusTd);
+
+    tbody.appendChild(tr);
+  }
+}
+
 function selectedFailureIds() {
   return [...document.querySelectorAll("#failure-list input:checked")].map((n) => n.value);
 }
@@ -284,10 +322,7 @@ function render(assessment) {
     constraints.appendChild(row);
   }
 
-  fillTable(
-    document.getElementById("compliance-body"),
-    CATALOG.requirements.map((r) => [r.citation, r.title, r.tool, r.status]),
-  );
+  renderCompliance(document.getElementById("compliance-body"), CATALOG.requirements);
 
   return assessment;
 }

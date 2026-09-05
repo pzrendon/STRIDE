@@ -799,6 +799,47 @@ legend {
   background: var(--panel-2);
 }
 
+/* Compliance matrix: readable requirement + status pills */
+.tag {
+  display: inline-block;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tag-ok {
+  color: var(--pass);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+.tag-warn {
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+.tag-info {
+  color: var(--accent-2);
+  border-color: rgba(96, 165, 250, 0.4);
+}
+.cell-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.compliance-table td {
+  vertical-align: top;
+}
+.compliance-table td:first-child {
+  min-width: 240px;
+}
+.compliance-table td strong {
+  font-size: 0.92rem;
+}
+
 @media (max-width: 900px) {
   .part450-hero,
   .part450-grid,
