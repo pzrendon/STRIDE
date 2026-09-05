@@ -47,12 +47,15 @@ Live site (GitHub Pages)
 - [STRIDE website](https://pzrendon.github.io/STRIDE/) — Sea Turtle Re-Entry Predictor
 - [Part 450 workbook](https://pzrendon.github.io/STRIDE/part450.html) — mission-safety dashboard (deploys from `main`)
 
-Marlin Web Prototype
-- The repository now includes a root-level Next.js prototype for Marlin's first rocket plus aerodynamic glide mission workflow.
-- Run `npm install` and `npm run dev` to start the local web app.
-- Open `/part450` for the mission-safety dashboard (Sea Turtle reentry example).
-- Run `npm test` for Part 450 / Sea Turtle unit tests.
-- Run `npm run build` to type-check and build the prototype.
+Where each tool lives
+- The **Sea Turtle Re-Entry Predictor** and the **Part 450 mission-safety workbook** are the live product. They ship from the static `web/` folder that GitHub Pages deploys, and `web/` is the single source of truth for their physics (`web/js/sim.js`) and analysis (`web/js/part450.js`). Preview locally with any static server:
+  ```bash
+  cd web && python -m http.server 8000   # then open http://localhost:8000
+  ```
+- The root-level **Next.js prototype is Marlin only** (rocket + aerodynamic glide playground). It does not deploy to GitHub Pages.
+  - Run `npm install` and `npm run dev`, then open `/` for Marlin.
+  - Run `npm run build` to type-check and build the prototype.
+- Run `npm test` for the automated tests. These now exercise the shipped `web/js` Sea Turtle + Part 450 modules directly (see `tests/web/`).
 
 
 Disclaimer

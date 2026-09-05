@@ -27,7 +27,7 @@ criteria:
     effective_date: null
     revision: unverified-placeholder
     verification_date: null
-    notes: "Conceptual Ec is summed in lib/part450/risk.ts; pass/fail is not asserted without a threshold."
+    notes: "Conceptual Ec is summed in web/js/part450.js; pass/fail is not asserted without a threshold."
 
   - id: individual_risk
     name: Individual risk
