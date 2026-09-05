@@ -812,8 +812,33 @@ legend {
     grid-template-columns: 1fr;
     gap: 28px;
   }
+  /*
+   * Mobile nav: don't hide the links (that used to make Part 450 unreachable
+   * on phones). Stack the brand over a compact, horizontally scrollable row so
+   * every section — including the Part 450 workbook — stays one tap away.
+   */
+  .header-inner {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 10px 0;
+  }
   .nav {
+    display: flex;
+    width: 100%;
+    gap: 18px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    font-size: 13.5px;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar {
     display: none;
+  }
+  .nav a {
+    white-space: nowrap;
   }
   .tool-intro {
     flex-direction: column;
