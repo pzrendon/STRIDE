@@ -5,6 +5,11 @@ Design and Engineering). It presents the project and hosts an interactive
 **Re-Entry Predictor (Sea Turtle)** plus a **Part 450 mission-safety workbook**
 that both run entirely in the visitor's browser.
 
+This folder is the **single source of truth** for the Sea Turtle physics
+(`js/sim.js`) and the Part 450 analysis (`js/part450.js`). GitHub Pages deploys
+only `web/`, so this is the code users actually run. (The root-level Next.js app
+is a separate Marlin propulsion prototype and does not deploy here.)
+
 ## Structure
 
 ```

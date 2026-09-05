@@ -85,6 +85,12 @@
             </div>
             <div class="panel">
               <h2 class="panel-title">Failure scenarios</h2>
+              <p class="panel-note">
+                Example P_f values are illustrative and treated as independent.
+                Some scenarios overlap (e.g. Cd high vs low), so the Ec sum below
+                is conceptual bookkeeping and can double-count — not a
+                mutually-exclusive event decomposition.
+              </p>
               <div id="failure-list" class="check-list"></div>
             </div>
             <div class="panel">
@@ -169,7 +175,9 @@
               <h2 class="panel-title">Risk summary</h2>
               <p class="panel-note">
                 Aircraft and maritime terms are not implemented. Individual risk
-                uses the synthetic Florida grid, not census data.
+                uses the synthetic Florida grid, not census data. Ec is summed
+                over independent example scenarios that may overlap, so treat it
+                as a conceptual upper-bookkeeping, not a de-conflicted total.
               </p>
               <div class="table-scroll">
                 <table class="results leftish">
@@ -192,12 +200,16 @@
 
             <div class="panel">
               <h2 class="panel-title">Requirement / compliance status</h2>
+              <p class="panel-note">
+                Citations are PLACEHOLDER until real 14 CFR Part 450 sections are
+                entered in <code>regulatory/part450/</code>. Nothing here is an
+                FAA determination.
+              </p>
               <div class="table-scroll">
-                <table class="results leftish">
+                <table class="results leftish compliance-table">
                   <thead>
                     <tr>
-                      <th>Citation</th>
-                      <th>Title</th>
+                      <th>Requirement</th>
                       <th>STRIDE evidence</th>
                       <th>Status</th>
                     </tr>

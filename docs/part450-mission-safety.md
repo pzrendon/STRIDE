@@ -39,20 +39,20 @@ Vehicle + CONOPS
   → markdown safety report
 ```
 
+The live product ships from `web/` (GitHub Pages), so `web/js` is the single
+source of truth. Everything below lives in one of two files, plus the
+version-controlled regulatory YAML.
+
 | Piece | Where | Notes |
 | --- | --- | --- |
-| Sea Turtle physics | `lib/sea-turtle/` | TS port of `web/js/sim.js` with a real state history (lat/lon/V/γ). |
-| Regulatory catalog | `regulatory/part450/` | YAML. Bundled copy in `lib/part450/regulatory/bundledYaml.ts` for the browser; tests fail if they drift. |
-| CONOPS / mission | `lib/part450/exampleMission.ts` | Launch vs reentry, sites, stages, FSS flags, timeline. |
-| Hazards | `lib/part450/hazards.ts` | Open register. Examples are data, not a closed enum. |
-| Failures | `lib/part450/failures.ts` | `FailureScenario` + parameter patches on Sea Turtle. |
-| Debris | `lib/part450/debris.ts` | Canned fragments, same ballistic ODEs. Marked conceptual. |
-| Geography | `lib/part450/geography.ts` | Synthetic grid or user-provided. No downloads. |
-| Risk | `lib/part450/risk.ts` | `Ec = Σ(P_f × P_impact × P_casualty × N)` only. |
-| Constraints | `lib/part450/constraints.ts` | Corridor, keep-out polygon, recovery circle. |
-| Compliance | `lib/part450/compliance.ts` | JSON-serializable matrix. |
-| Report | `lib/part450/report.ts` | The 13-section markdown dump. |
-| Dashboard | `app/part450/page.tsx` | Same dark-panel language as Marlin. Ground track is an SVG sketch (Plotly stays on Marlin). |
+| Sea Turtle physics | `web/js/sim.js` | No-lift planar entry `(h, V, γ)` with a tracked lat/lon state history. Shared with the Re-Entry Predictor. |
+| Part 450 analysis | `web/js/part450.js` | Mission, hazards, failures, debris, risk, constraints, compliance catalog, and the markdown report. |
+| Part 450 UI | `web/part450.html` + `web/js/part450-app.js` | DOM built with `textContent` (no `innerHTML`). Ground track is an SVG sketch (no third-party scripts). |
+| Regulatory catalog | `regulatory/part450/*.yaml` | Version-controlled citations/criteria. Mirrored by hand into the `CATALOG` object in `web/js/part450.js` (no YAML parser ships — CSP / zero deps). `tests/web/part450.test.ts` guards the mirror and that no numeric thresholds appear. |
+| Hazards / failures | `HAZARDS` / `FAILURES` in `web/js/part450.js` | Open register and parameter-patch scenarios. Examples are data, not a closed enum. |
+| Debris | `debrisFrom()` in `web/js/part450.js` | Canned fragments, same ballistic ODEs. Marked conceptual. |
+| Risk | `runPart450Assessment()` in `web/js/part450.js` | `Ec = Σ(P_f × P_impact × P_casualty × N)` only, against a synthetic population grid. |
+| Report | `generateSafetyReport()` in `web/js/part450.js` | The 13-section markdown dump. |
 
 ## What is actually calculated (MVP)
 
@@ -102,40 +102,45 @@ Edit YAML, not TypeScript, when the CFR moves:
 - `regulatory/part450/applicability.yaml` — launch vs reentry mapping
 
 Every entry is supposed to carry `citation`, `source`, `effective_date`,
-`revision`, `verification_date`. The bundled strings in
-`lib/part450/regulatory/bundledYaml.ts` must match the files; `tests/part450/regulatory.test.ts`
-checks that.
+`revision`, `verification_date`. When you edit the YAML, mirror the same ids and
+placeholder text into the `CATALOG` object in `web/js/part450.js` (the static
+site has no YAML parser). `tests/web/part450.test.ts` checks that every catalog
+id still appears in the YAML and that no numeric threshold has crept in.
 
-Never put a limit in `risk.ts` "because that's what Part 450 says." Put it in
-YAML with a source and a date, or leave it as `REGULATORY VALUE REQUIRED`.
+Never put a limit in `web/js/part450.js` "because that's what Part 450 says."
+Put it in YAML with a source and a date, or leave it as
+`REGULATORY VALUE REQUIRED`.
 
 ## Replacing a simplified model
 
-Each analysis file is a function over plain objects. To swap debris, for
-example:
+Each analysis step in `web/js/part450.js` is a plain function over plain
+objects, so you can swap one without touching the rest:
 
-1. Keep `DebrisFragment` / `DebrisFootprint`.
-2. Write `propagateFragment` against a new propagator (or call an external code).
-3. Pass the new footprint into `assessPublicRisk` / the report.
-4. Leave the YAML catalog alone.
-
-Same idea for geography (`GeographicDataset`), failures (`FailureScenario.parameterChanges`
-is a bag of knobs), and constraints (add a `kind` and a branch in
-`evaluateConstraints`).
+1. Debris: replace `debrisFrom()` (or point it at a better propagator). Keep the
+   `{ id, lat, lon, v, ke }` impact shape the risk sum and sketch expect.
+2. Risk: replace `conceptualCasualtyProbability()` — it is a placeholder
+   lethality-vs-KE curve, not an FAA casualty-area model. Do not sprinkle magic
+   numbers elsewhere.
+3. Population: replace `syntheticPopulation()`. Nothing is downloaded today.
+4. Constraints: add an id + a branch in `constraintHits()`.
+5. Leave the regulatory YAML catalog alone unless you have a cited source.
 
 ## Example mission
 
-`leoReusableReentryMission()` is a capsule-class LEO return toward a synthetic
-Florida recovery site. Run it from the `/part450` dashboard or:
+`MISSION` in `web/js/part450.js` is a capsule-class LEO return toward a synthetic
+Florida recovery site. It runs automatically on `web/part450.html`. To drive the
+same logic from Node (this is what `tests/web/part450.test.ts` does):
 
-```ts
-import { runMissionSafetyAssessment, generateSafetyReport } from "@/lib/part450";
+```js
+import { runPart450Assessment, generateSafetyReport } from "./web/js/part450.js";
 
-const assessment = runMissionSafetyAssessment();
+const assessment = runPart450Assessment({ enabledIds: undefined }); // all failures
 console.log(generateSafetyReport(assessment));
 ```
 
-The static Sea Turtle lab in `web/` now includes `part450.html`, which is what GitHub Pages publishes. The Next.js `/part450` route is the same workbook inside the Marlin prototype.
+`web/part450.html` is what GitHub Pages publishes. There is no separate Next.js
+Part 450 route anymore — that duplicate UI was removed so the static workbook is
+the one place to edit.
 
 ## Tests
 
@@ -143,5 +148,7 @@ The static Sea Turtle lab in `web/` now includes `part450.html`, which is what G
 npm test
 ```
 
-Covers hazards, failure patches, risk product, polygons, compliance JSON,
-YAML loading, and report disclaimer text.
+`tests/web/` exercises the shipped modules directly: Sea Turtle physics
+(landing, determinism, targeting, sweep status) and the Part 450 workbook
+(assessment shape, the exact `Ec` product identity, determinism, the verbatim
+disclaimer, the YAML↔catalog mirror, and "no invented FAA numbers").

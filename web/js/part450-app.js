@@ -101,8 +101,25 @@ function drawSketch(svg, assessment) {
   const w = 900;
   const h = 420;
   const m = { l: 52, r: 16, t: 16, b: 40 };
-  const x = (lon) => m.l + ((lon - minLon) / (maxLon - minLon)) * (w - m.l - m.r);
-  const y = (lat) => m.t + ((maxLat - lat) / (maxLat - minLat)) * (h - m.t - m.b);
+  const plotW = w - m.l - m.r;
+  const plotH = h - m.t - m.b;
+
+  // Equal-aspect projection so a geographic circle (the recovery zone) reads as
+  // a circle, not an oval. Degrees of longitude shrink with latitude, so scale
+  // both axes in kilometres and use one px/km factor for x and y, letterboxing
+  // the track inside the frame.
+  const midLatRad = (((minLat + maxLat) / 2) * Math.PI) / 180;
+  const kmPerDegLat = 110.574;
+  const kmPerDegLon = 111.32 * Math.cos(midLatRad);
+  const spanKmX = Math.max((maxLon - minLon) * kmPerDegLon, 1e-6);
+  const spanKmY = Math.max((maxLat - minLat) * kmPerDegLat, 1e-6);
+  const scale = Math.min(plotW / spanKmX, plotH / spanKmY);
+  const drawnW = spanKmX * scale;
+  const drawnH = spanKmY * scale;
+  const offX = m.l + (plotW - drawnW) / 2;
+  const offY = m.t + (plotH - drawnH) / 2;
+  const x = (lon) => offX + (lon - minLon) * kmPerDegLon * scale;
+  const y = (lat) => offY + (maxLat - lat) * kmPerDegLat * scale;
 
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
   svg.replaceChildren();
@@ -139,16 +156,24 @@ function drawSketch(svg, assessment) {
     transform: `rotate(-90 16 ${h / 2})`,
   });
   ylabel.textContent = "latitude [deg]";
-  const xmin = add("text", { x: m.l, y: h - 12, fill: "#8b98a5", "font-size": 11 });
+  const xmin = add("text", { x: offX, y: h - 12, fill: "#8b98a5", "font-size": 11 });
   xmin.textContent = minLon.toFixed(1);
   const xmax = add("text", {
-    x: w - m.r,
+    x: offX + drawnW,
     y: h - 12,
     fill: "#8b98a5",
     "font-size": 11,
     "text-anchor": "end",
   });
   xmax.textContent = maxLon.toFixed(1);
+  const aspectNote = add("text", {
+    x: w - m.r,
+    y: m.t + 14,
+    fill: "#8b98a5",
+    "font-size": 11,
+    "text-anchor": "end",
+  });
+  aspectNote.textContent = "equal-aspect (1:1 km)";
 
   for (const item of series) {
     if (!item.points.length) continue;
@@ -175,6 +200,44 @@ function drawSketch(svg, assessment) {
       "stroke-width": item.kind === "line" ? 2.6 : 1.6,
       "stroke-dasharray": item.kind === "dash" ? "5 4" : "none",
     });
+  }
+}
+
+const STATUS_TAG = {
+  ANALYSIS_COMPLETE: "tag tag-ok",
+  REQUIRES_EXTERNAL_EVIDENCE: "tag tag-warn",
+  IN_WORK: "tag tag-info",
+};
+
+function humanStatus(status) {
+  return status.replace(/_/g, " ").toLowerCase();
+}
+
+// The placeholder CFR matrix is long and citation-heavy. Render the readable
+// requirement name up front, tuck the (still-PLACEHOLDER) citation into a muted
+// line, and show status as a colored pill so the table scans quickly.
+function renderCompliance(tbody, requirements) {
+  tbody.replaceChildren();
+  for (const req of requirements) {
+    const tr = document.createElement("tr");
+
+    const reqTd = document.createElement("td");
+    reqTd.appendChild(el("strong", null, req.title.replace(/^PLACEHOLDER:\s*/, "")));
+    const meta = el("div", "cell-meta");
+    meta.appendChild(el("span", "tag tag-ph", "PLACEHOLDER"));
+    meta.appendChild(el("small", "muted-block", `${req.id} · ${req.citation}`));
+    reqTd.appendChild(meta);
+    tr.appendChild(reqTd);
+
+    const toolTd = document.createElement("td");
+    toolTd.textContent = req.tool;
+    tr.appendChild(toolTd);
+
+    const statusTd = document.createElement("td");
+    statusTd.appendChild(el("span", STATUS_TAG[req.status] ?? "tag", humanStatus(req.status)));
+    tr.appendChild(statusTd);
+
+    tbody.appendChild(tr);
   }
 }
 
@@ -259,28 +322,46 @@ function render(assessment) {
     constraints.appendChild(row);
   }
 
-  fillTable(
-    document.getElementById("compliance-body"),
-    CATALOG.requirements.map((r) => [r.citation, r.title, r.tool, r.status]),
-  );
+  renderCompliance(document.getElementById("compliance-body"), CATALOG.requirements);
 
   return assessment;
 }
 
 let lastAssessment = null;
 
-function rerun() {
+// The assessment reruns every Sea Turtle case synchronously on the main thread,
+// so toggling a failure freezes the tab for a beat. Flip a visible busy state
+// (disabled controls + a spinning status) and let it paint before we block, so
+// the delay reads as "working" rather than "broken".
+function setBusy(isBusy) {
+  const main = document.querySelector(".part450-main");
   const status = document.getElementById("run-status");
-  status.textContent = "Running Sea Turtle cases…";
-  // Let the status paint before we block the main thread.
-  requestAnimationFrame(() => {
-    lastAssessment = runPart450Assessment({
-      enabledIds: selectedFailureIds(),
-      monteCarlo: document.getElementById("mc-toggle").checked,
-    });
-    render(lastAssessment);
-    status.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-  });
+  const controls = document.querySelectorAll("#failure-list input, #mc-toggle");
+  if (main) main.classList.toggle("is-busy", isBusy);
+  if (main) main.setAttribute("aria-busy", isBusy ? "true" : "false");
+  status.classList.toggle("busy", isBusy);
+  for (const input of controls) input.disabled = isBusy;
+  if (isBusy) status.textContent = "Running Sea Turtle cases…";
+}
+
+function rerun() {
+  setBusy(true);
+  // Two frames: the first lets the busy state paint, the second runs the
+  // (blocking) assessment.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      try {
+        lastAssessment = runPart450Assessment({
+          enabledIds: selectedFailureIds(),
+          monteCarlo: document.getElementById("mc-toggle").checked,
+        });
+        render(lastAssessment);
+        document.getElementById("run-status").textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } finally {
+        setBusy(false);
+      }
+    }),
+  );
 }
 
 function init() {
