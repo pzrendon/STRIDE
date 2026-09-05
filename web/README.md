@@ -2,21 +2,24 @@
 
 A static website for STRIDE (Supersonic+ Transport and Reusable Integrated
 Design and Engineering). It presents the project and hosts an interactive
-**Re-Entry Predictor (Sea Turtle)** that runs the trajectory simulation entirely
-in the visitor's browser.
+**Re-Entry Predictor (Sea Turtle)** plus a **Part 450 mission-safety workbook**
+that both run entirely in the visitor's browser.
 
 ## Structure
 
 ```
 web/
-├── index.html      # landing page + interactive tool markup
+├── index.html      # landing page + Sea Turtle tool
+├── part450.html    # Part 450 mission-safety workbook
 ├── styles.css      # dark aerospace theme
 ├── _headers        # security headers for Netlify / Cloudflare Pages
 └── js/
     ├── sim.js      # physics engine (ported from the Python reference)
     ├── plot.js     # dependency-free canvas line charts
     ├── learn.js    # presets, glossary, study modules, run narratives
-    └── app.js      # UI wiring, Learn/Research modes, export
+    ├── app.js      # Sea Turtle UI wiring
+    ├── part450.js  # hazards, failures, risk, constraints, report
+    └── part450-app.js
 ```
 
 Zero build step and zero third-party runtime dependencies — plain HTML, CSS,
@@ -29,6 +32,13 @@ and ES-module JavaScript.
 - **Research mode** — custom shield/chute diameter sweeps, targeting knobs, and
   CSV/JSON export of the parametric study.
 - Inline field help and an assumptions panel document the first-order model.
+
+### Part 450 workbook
+
+`part450.html` runs the example LEO reentry through Sea Turtle, then hangs a
+hazard register, off-nominal tracks, a conceptual debris/Ec sketch, and a
+placeholder 14 CFR Part 450 evidence matrix off that trajectory. Same CSP and
+no third-party scripts. It is not a license application.
 
 ### Physics model (Sea Turtle)
 
@@ -67,7 +77,9 @@ Point the host at this `web/` folder (or set it as the publish/output directory)
 
 ## Security
 
-The architecture was chosen specifically to minimize risk.
+The architecture was chosen specifically to minimize risk. The Part 450 page
+uses the same rules: ES modules, `textContent` for tables, no third-party
+scripts, no backend.
 
 ### Why this design is the safe default
 

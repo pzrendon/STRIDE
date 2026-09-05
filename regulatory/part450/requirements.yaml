@@ -1,0 +1,92 @@
+# Part 450 regulatory catalog — PLACEHOLDER
+#
+# This file is the version-controlled home for 14 CFR Part 450 citations.
+# Analysis code must read thresholds and requirement text from here (or from
+# a future updated copy). Do not paste "remembered" FAA language into the
+# TypeScript. If a field is unknown, leave it null / PLACEHOLDER.
+#
+# schema fields that every entry should eventually have:
+#   citation, source, effective_date, revision, verification_date
+
+schema_version: 1
+regulation: "14 CFR Part 450"
+title: "Launch and Reentry License Requirements — placeholder catalog"
+disclaimer: >
+  Entries below are structural placeholders for STRIDE configuration control.
+  They are not a substitute for the Code of Federal Regulations. Insert
+  authoritative section citations and requirement text before any licensing use.
+source: PLACEHOLDER
+effective_date: null
+revision: unverified-placeholder
+verification_date: null
+
+entries:
+  - id: PART450-PLACEHOLDER-FLIGHT-SAFETY-ANALYSIS
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert flight safety analysis section"
+    title: "PLACEHOLDER: Flight safety analysis"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Hook for trajectory, debris, and containment evidence from STRIDE."
+
+  - id: PART450-PLACEHOLDER-PUBLIC-RISK
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert public risk / expected casualty section"
+    title: "PLACEHOLDER: Public risk criteria"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Numeric thresholds live in criteria.yaml, not in the risk equations."
+
+  - id: PART450-PLACEHOLDER-HAZARD-ANALYSIS
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert hazard analysis / system safety section"
+    title: "PLACEHOLDER: Hazard analysis"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Trace hazards in the register to this ID once a real citation exists."
+
+  - id: PART450-PLACEHOLDER-FLIGHT-SAFETY-SYSTEM
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert FSS / AFSS section"
+    title: "PLACEHOLDER: Flight safety system"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Commanded termination and AFSS flags on the CONOPS object."
+
+  - id: PART450-PLACEHOLDER-CONTAINMENT
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert containment / hazard area section"
+    title: "PLACEHOLDER: Debris containment and hazard areas"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Keep-out polygons and impact-containment constraints hang off this ID."
+
+  - id: PART450-PLACEHOLDER-TRAJECTORY-ANALYSIS
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert trajectory analysis section"
+    title: "PLACEHOLDER: Trajectory analysis"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Sea Turtle nominal + off-nominal trajectories are the current evidence source."
+
+  - id: PART450-PLACEHOLDER-APPLICATION-EVIDENCE
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert application / compliance demonstration section"
+    title: "PLACEHOLDER: Application evidence"
+    requirement_text: "PLACEHOLDER: insert authoritative regulatory text"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Compliance matrix rows should point here once real section numbers are filled in."

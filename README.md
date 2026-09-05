@@ -12,6 +12,7 @@ Core Focus Areas
 1. Re-Entry Predictor (aka Sea Turtle): Trajectory solvers and mission level tools for ascent, boost, cruise, and entry profiles. This includes mass fraction sensitivity, energy management, and guidance level trade studies suitable for reusable launch and high speed transport concepts.
 2. Integrated Engine Design (aka Marlin): Tools for modeling and comparing reusable propulsion concepts including turbo based combined cycle, ramjet and scramjet assisted systems, and rocket augmented architectures. Emphasis is placed on mode transition logic, operating envelopes, and system level performance trends rather than component level CFD.
 3. System Level Trade Studies (aka Dolphin): Parametric analysis tools to explore how propulsion choices, vehicle mass properties, and mission requirements interact. STRIDE is designed to support rapid iteration during the conceptual and preliminary design phases.
+4. Part 450 Mission Safety (Sea Turtle + licensing workbook): An engineering-oriented flight-safety and evidence-traceability module. It connects Sea Turtle reentry trajectories to hazards, off-nominal cases, conceptual public-risk bookkeeping, and a Part 450 compliance matrix. It does not produce an FAA license application.
 
 Current Status: STRIDE is under active development and should be considered an early stage research and engineering project. Initial efforts are focused on building a robust foundation for trajectory analysis and propulsion performance modeling, with additional capabilities added incrementally. The architecture is intentionally modular to allow future expansion into areas such as thermal constraints, reentry heating approximations, and high level structural mass estimation.
 
@@ -28,7 +29,7 @@ STRIDE is suitable for:
 - Propulsion and mission trade analysis
 - Educational and research projects
 - Demonstrating system level aerospace engineering capability
-It is not intended for flight certification or detailed component design.
+It is not intended for flight certification, FAA Part 450 licensing, or detailed component design.
 
 Planned and potential features include:
 1. Multi phase trajectory solvers for reusable systems
@@ -40,10 +41,17 @@ The roadmap will evolve as the project matures.
 
 Milestone Documents
 - [Marlin Conceptual Requirements and Product Specification](docs/marlin-conceptual-requirements.md): Defines the initial mission-design workflow, vehicle scope, physics-model boundaries, outputs, and clickable prototype acceptance criteria for Marlin.
+- [Part 450 Mission Safety Module](docs/part450-mission-safety.md): How the Sea Turtle trajectory library is wired to a Part 450-oriented hazard / risk / evidence workbook, what is actually calculated, and what is still a placeholder.
+
+Live site (GitHub Pages)
+- [STRIDE website](https://pzrendon.github.io/STRIDE/) — Sea Turtle Re-Entry Predictor
+- [Part 450 workbook](https://pzrendon.github.io/STRIDE/part450.html) — mission-safety dashboard (deploys from `main`)
 
 Marlin Web Prototype
 - The repository now includes a root-level Next.js prototype for Marlin's first rocket plus aerodynamic glide mission workflow.
 - Run `npm install` and `npm run dev` to start the local web app.
+- Open `/part450` for the mission-safety dashboard (Sea Turtle reentry example).
+- Run `npm test` for Part 450 / Sea Turtle unit tests.
 - Run `npm run build` to type-check and build the prototype.
 
 

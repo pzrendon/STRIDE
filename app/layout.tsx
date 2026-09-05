@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Marlin | Hypersonic Mission Playground",
+  title: "STRIDE | Marlin and Part 450",
   description:
-    "A conceptual STRIDE prototype for comparing rocket-boosted hypersonic re-entry vehicle mission profiles."
+    "Conceptual STRIDE toolkit for hypersonic mission design (Marlin) and Part 450-oriented mission safety workbooks."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

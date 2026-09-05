@@ -1,0 +1,35 @@
+# Which placeholder requirements apply to which operation types.
+# Update this without touching the analysis libraries.
+
+schema_version: 1
+regulation: "14 CFR Part 450"
+disclaimer: >
+  Applicability flags are engineering bookkeeping for STRIDE, not a legal
+  determination of what Part 450 requires for a given operator.
+source: PLACEHOLDER
+effective_date: null
+revision: unverified-placeholder
+verification_date: null
+
+operations:
+  - id: reentry
+    label: Reentry operation
+    default_applicable_requirement_ids:
+      - PART450-PLACEHOLDER-FLIGHT-SAFETY-ANALYSIS
+      - PART450-PLACEHOLDER-PUBLIC-RISK
+      - PART450-PLACEHOLDER-HAZARD-ANALYSIS
+      - PART450-PLACEHOLDER-FLIGHT-SAFETY-SYSTEM
+      - PART450-PLACEHOLDER-CONTAINMENT
+      - PART450-PLACEHOLDER-TRAJECTORY-ANALYSIS
+      - PART450-PLACEHOLDER-APPLICATION-EVIDENCE
+
+  - id: launch
+    label: Launch operation
+    default_applicable_requirement_ids:
+      - PART450-PLACEHOLDER-FLIGHT-SAFETY-ANALYSIS
+      - PART450-PLACEHOLDER-PUBLIC-RISK
+      - PART450-PLACEHOLDER-HAZARD-ANALYSIS
+      - PART450-PLACEHOLDER-FLIGHT-SAFETY-SYSTEM
+      - PART450-PLACEHOLDER-CONTAINMENT
+      - PART450-PLACEHOLDER-TRAJECTORY-ANALYSIS
+      - PART450-PLACEHOLDER-APPLICATION-EVIDENCE

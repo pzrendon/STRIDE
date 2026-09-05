@@ -1,0 +1,78 @@
+# Public-risk / flight-safety numeric criteria — PLACEHOLDER
+#
+# STRIDE will not guess FAA limits. If a threshold has not been entered from
+# an authoritative source, the UI and reports print REGULATORY VALUE REQUIRED
+# instead of a number. Analysis code compares against these fields; it does
+# not hard-code 1e-4 / 1e-6 / etc.
+
+schema_version: 1
+regulation: "14 CFR Part 450"
+disclaimer: >
+  Threshold values are intentionally null until an authoritative, dated source
+  is recorded. Do not fill these in from memory.
+source: PLACEHOLDER
+effective_date: null
+revision: unverified-placeholder
+verification_date: null
+unspecified_display: REGULATORY VALUE REQUIRED
+
+criteria:
+  - id: expected_casualties
+    name: Expected casualties (Ec)
+    quantity: expected_casualties
+    threshold: null
+    units: expected_casualties
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert Ec criterion citation"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Conceptual Ec is summed in lib/part450/risk.ts; pass/fail is not asserted without a threshold."
+
+  - id: individual_risk
+    name: Individual risk
+    quantity: individual_risk
+    threshold: null
+    units: probability_per_mission
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert individual risk citation"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: null
+
+  - id: collective_risk
+    name: Collective risk
+    quantity: collective_risk
+    threshold: null
+    units: expected_casualties
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert collective risk citation"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: null
+
+  - id: aircraft_risk
+    name: Aircraft risk
+    quantity: aircraft_risk
+    threshold: null
+    units: expected_casualties
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert aircraft risk citation"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Not implemented in the MVP. Left as an interface only."
+
+  - id: maritime_risk
+    name: Ship / maritime exposure
+    quantity: maritime_risk
+    threshold: null
+    units: expected_casualties
+    citation: "14 CFR Part 450 — PLACEHOLDER: insert maritime risk citation"
+    source: PLACEHOLDER
+    effective_date: null
+    revision: unverified-placeholder
+    verification_date: null
+    notes: "Not implemented in the MVP. Left as an interface only."

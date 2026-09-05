@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState, type ReactNode } from "react";
 import type { Config, Data, Layout } from "plotly.js";
+import { SiteNav } from "@/components/SiteNav";
 import { TrajectoryView } from "@/components/TrajectoryView";
 import { formatCompact, formatDuration, formatNumber } from "@/lib/marlin/format";
 import { DEFAULT_MISSION, OUTPUT_OPTIONS, type OutputOptionId, VEHICLE_PRESETS } from "@/lib/marlin/presets";
@@ -73,6 +74,7 @@ export default function Home() {
 
   return (
     <main className="app-shell">
+      <SiteNav current="marlin" />
       <section className="hero">
         <div className="hero-card">
           <p className="eyebrow">STRIDE / Marlin prototype</p>
