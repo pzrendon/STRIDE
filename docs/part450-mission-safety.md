@@ -135,8 +135,7 @@ const assessment = runMissionSafetyAssessment();
 console.log(generateSafetyReport(assessment));
 ```
 
-The static Sea Turtle lab in `web/` is unchanged. The TS library is the copy
-Part 450 uses so we can keep a full ground track.
+The static Sea Turtle lab in `web/` now includes `part450.html`, which is what GitHub Pages publishes. The Next.js `/part450` route is the same workbook inside the Marlin prototype.
 
 ## Tests
 

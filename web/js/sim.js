@@ -122,25 +122,43 @@ function derivs(h, v, gamma, mass, cd, area) {
   };
 }
 
+function wrapLon(lon) {
+  let x = lon;
+  while (x > 180) x -= 360;
+  while (x < -180) x += 360;
+  return x;
+}
+
 /**
  * Run one entry simulation for a given heat-shield diameter, chute diameter,
  * and flight-path angle (positive degrees below horizon). Returns summary
  * metrics plus down-sampled logs.
+ *
+ * options (all optional; omit them and this is the original Sea Turtle run):
+ *   track, startLongitudeDeg, chuteEnabled, shieldCd, crossrangeRateMps,
+ *   maxSamples, initialState { h, v, gamma, t, rangeM, crossrangeM, mass }
  */
-export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
+export function runMasterSim(cfg, sDia, pDia, gammaInDeg, options = {}) {
   const C = CONSTANTS;
   const sArea = Math.PI * (sDia / 2) ** 2;
   const pArea = Math.PI * (pDia / 2) ** 2;
   const shieldMass = sArea * cfg.tpsThickness * cfg.tpsDensity;
-  const totalMass = cfg.payloadMassKg + shieldMass + 5.0;
-  const beta = totalMass / (cfg.shieldCd * sArea);
+  const totalMass = options.initialState?.mass ?? cfg.payloadMassKg + shieldMass + 5.0;
+  const shieldCd = options.shieldCd ?? cfg.shieldCd;
+  const chuteEnabled = options.chuteEnabled !== false;
+  const crossrangeRateMps = options.crossrangeRateMps ?? 0;
+  const startLon = options.startLongitudeDeg;
+  const track = Boolean(options.track);
+  const maxSamples = options.maxSamples ?? 480;
+  const beta = totalMass / (shieldCd * sArea);
 
-  let h = cfg.startAltKm * 1000.0;
-  let v = cfg.startVelMps;
+  const init = options.initialState;
+  let h = init?.h ?? cfg.startAltKm * 1000.0;
+  let v = init?.v ?? cfg.startVelMps;
   // UI entry angle is below-horizon positive → γ negative for descent.
-  let gamma = -deg2rad(Math.abs(gammaInDeg));
+  let gamma = init?.gamma ?? -deg2rad(Math.abs(gammaInDeg));
 
-  let t = 0,
+  let t = init?.t ?? 0,
     tK = 0,
     maxG = 0,
     maxQ = 0,
@@ -148,15 +166,60 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
     shockG = 0,
     altMaxG = 0,
     altMaxQ = 0,
-    rangeM = 0,
-    kReached = false,
-    chuteDeployed = false,
+    rangeM = init?.rangeM ?? 0,
+    crossrangeM = init?.crossrangeM ?? 0,
+    kReached = h <= C.KARMAN_LINE,
+    chuteDeployed = Boolean(init?.chuteDeployed),
     outcome = "integrating";
 
   const altLog = [];
   const gLog = [];
   const qLog = [];
+  const samples = [];
+  const events = [];
   let stepCount = 0;
+
+  const latRad = deg2rad(cfg.targetLat);
+  const cosLat = Math.max(Math.abs(Math.cos(latRad)), 1e-6);
+
+  const lonAt = (range, time) => {
+    const lonRelDeg = rad2deg(range / (C.R_EARTH * cosLat));
+    const earthRotateDeg = rad2deg(C.ROT_SPEED * time);
+    return wrapLon((startLon ?? 0) + lonRelDeg - earthRotateDeg);
+  };
+  const latAt = (cross) => {
+    const lat = cfg.targetLat + rad2deg(cross / C.R_EARTH);
+    return Math.max(-89.9, Math.min(89.9, lat));
+  };
+  const pushSample = (force) => {
+    if (!track) return;
+    const stride = Math.max(1, Math.floor(40));
+    if (!force && stepCount % stride !== 0) return;
+    const last = samples[samples.length - 1];
+    if (last && !force && t - last.t < 0.4) return;
+    if (samples.length > maxSamples && !force) return;
+    samples.push({
+      t,
+      h,
+      v,
+      gammaDeg: rad2deg(gamma),
+      rangeM,
+      crossrangeM,
+      lat: latAt(crossrangeM),
+      lon: lonAt(rangeM, t),
+      qDyn: 0.5 * density(h) * v * v,
+      mass: totalMass,
+      chuteDeployed,
+    });
+  };
+  const recordEvent = (id, label) => {
+    if (!track || events.some((e) => e.id === id)) return;
+    const sample = samples[samples.length - 1];
+    events.push({ id, label, t, sample });
+  };
+
+  pushSample(true);
+  recordEvent("sim-start", "Propagation start");
 
   while (stepCount < MAX_STEPS) {
     if (h <= 0) {
@@ -183,20 +246,24 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
     if (h <= C.KARMAN_LINE && !kReached) {
       tK = t;
       kReached = true;
+      pushSample(true);
+      recordEvent("entry-interface", "Atmospheric entry interface (~100 km)");
     }
 
     // Capture opening shock on the ballistic state *before* chute aero is
     // applied, so RK2 midpoints cannot bleed speed and under-report shock.
-    if (!chuteDeployed && h <= cfg.chuteDeployAltM) {
+    if (chuteEnabled && !chuteDeployed && h <= cfg.chuteDeployAltM) {
       const qDyn = 0.5 * rho * v * v;
       shockG =
         (qDyn * pArea * cfg.chuteCd * cfg.shockFactorX) /
         (totalMass * C.G0);
       chuteDeployed = true;
+      pushSample(true);
+      recordEvent("chute-deploy", "Parachute deploy");
     }
 
     const area = chuteDeployed ? pArea : sArea;
-    const cd = chuteDeployed ? cfg.chuteCd : cfg.shieldCd;
+    const cd = chuteDeployed ? cfg.chuteCd : shieldCd;
 
     // Midpoint (RK2) integration of the no-lift ODEs.
     const k1 = derivs(h, v, gamma, totalMass, cd, area);
@@ -208,7 +275,7 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
 
     // Ballistic peak G from shield aero only (never from chute Cd/A).
     const shieldDragA =
-      (0.5 * rho * Math.max(v, 1e-9) ** 2 * cfg.shieldCd * sArea) / totalMass;
+      (0.5 * rho * Math.max(v, 1e-9) ** 2 * shieldCd * sArea) / totalMass;
     const ballisticG = shieldDragA / C.G0;
     if (!chuteDeployed && ballisticG > maxG) {
       maxG = ballisticG;
@@ -236,6 +303,7 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
     // Ground-range increment (arc on spherical Earth).
     const r = C.R_EARTH + Math.max(h, 0);
     rangeM += ((v * Math.cos(gamma) * C.R_EARTH) / r) * dt;
+    crossrangeM += crossrangeRateMps * dt;
 
     if (stepCount % 20 === 0) {
       altLog.push(h / 1000);
@@ -245,19 +313,28 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
 
     t += dt;
     stepCount += 1;
+    pushSample(false);
   }
 
   if (stepCount >= MAX_STEPS && outcome === "integrating") {
     outcome = "timeout";
   }
 
-  const latRad = deg2rad(cfg.targetLat);
-  const cosLat = Math.max(Math.abs(Math.cos(latRad)), 1e-6);
+  pushSample(true);
+  recordEvent(
+    "end-of-propagation",
+    outcome === "landed" ? "Surface impact / landing" : `Ended: ${outcome}`,
+  );
+
   const lonRelDeg = rad2deg(rangeM / (C.R_EARTH * cosLat));
   const earthRotateDeg = rad2deg(C.ROT_SPEED * t);
+  const relativeLon = lonRelDeg - earthRotateDeg;
+  const impactLat = latAt(crossrangeM);
+  const impactLon =
+    startLon == null ? relativeLon : lonAt(rangeM, t);
 
   return {
-    lon: lonRelDeg - earthRotateDeg,
+    lon: relativeLon,
     beta,
     t1: tK,
     t2: kReached ? Math.max(t - tK, 0) : 0,
@@ -274,7 +351,44 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg) {
     gArr: gLog,
     qArr: qLog,
     timedOut: outcome === "timeout",
+    impactLatitudeDeg: impactLat,
+    impactLongitudeDeg: impactLon,
+    impactVelocityMs: v,
+    impactKineticEnergyJ: 0.5 * totalMass * v * v,
+    deorbitLongitudeDeg: startLon ?? null,
+    samples,
+    events,
+    massKg: totalMass,
   };
+}
+
+/** Full ground-track run used by the Part 450 workbook. */
+export function runTrackedEntry(cfg, options = {}) {
+  const { shield, chute } = referenceShieldChute(cfg);
+  const sDia = options.shieldDiameterM ?? shield;
+  const pDia = options.chuteDiameterM ?? chute;
+  const gamma = options.entryAngleDeg ?? cfg.entryAngleDeg;
+  let startLon = options.startLongitudeDeg;
+  if (startLon == null && !options.skipTargeting) {
+    startLon = cfg.targetLon - 22.0;
+    for (let i = 0; i < 5; i += 1) {
+      const s = runMasterSim(cfg, sDia, pDia, gamma, {
+        ...options,
+        track: false,
+        startLongitudeDeg: startLon,
+        skipTargeting: true,
+      });
+      if (s.outcome !== "landed") break;
+      startLon += cfg.targetLon - s.impactLongitudeDeg;
+    }
+    startLon = wrapLon(startLon);
+  }
+  if (startLon == null) startLon = cfg.targetLon;
+  return runMasterSim(cfg, sDia, pDia, gamma, {
+    ...options,
+    track: true,
+    startLongitudeDeg: startLon,
+  });
 }
 
 function referenceShieldChute(cfg) {

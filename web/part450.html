@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="STRIDE Part 450 mission safety workbook — Sea Turtle reentry trajectories, hazards, conceptual public risk, and a placeholder compliance matrix. Not an FAA license application."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>STRIDE — Part 450 Mission Safety</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="js/part450-app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">◤</span>
+          <span class="brand-text">STRIDE</span>
+        </a>
+        <nav class="nav">
+          <a href="index.html#focus">Focus areas</a>
+          <a href="index.html#tool">Re-Entry Predictor</a>
+          <a href="part450.html" aria-current="page">Part 450</a>
+          <a href="index.html#philosophy">Philosophy</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap part450-hero">
+          <div>
+            <p class="eyebrow">STRIDE / Sea Turtle + Part 450</p>
+            <h1>Mission safety &amp; licensing workbook</h1>
+            <p class="lede">
+              Engineering-oriented traceability from a Sea Turtle reentry
+              trajectory to hazards, off-nominal cases, a first-order footprint,
+              conceptual public risk, and a Part 450 evidence matrix. This is
+              not a license application and not an FAA-validated flight safety
+              analysis.
+            </p>
+            <p class="badge-row">
+              <span class="pill">Reentry CONOPS</span>
+              <span class="pill">Sea Turtle 2-DOF</span>
+              <span class="pill">Placeholder CFR catalog</span>
+              <span class="pill">REGULATORY VALUE REQUIRED</span>
+            </p>
+          </div>
+          <aside class="panel">
+            <p class="eyebrow">Scope guardrail</p>
+            <p id="disclaimer-text" class="disclaimer"></p>
+            <p class="badge-row">
+              <span class="pill">LEO</span>
+              <span class="pill">deorbit</span>
+              <span class="pill">EI</span>
+              <span class="pill">entry</span>
+              <span class="pill">chute</span>
+              <span class="pill">recovery</span>
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wrap part450-grid">
+          <aside class="part450-side">
+            <div class="panel">
+              <h2 class="panel-title">Example mission</h2>
+              <p class="panel-note">
+                LEO reusable capsule reentry. Vehicle is a capsule-class
+                reusable reentry flying the Sea Turtle no-lift model toward a
+                synthetic Florida recovery aimpoint.
+              </p>
+              <p class="panel-note">
+                Example CONOPS does not claim an FSS. Set the flags when a real
+                design has one.
+              </p>
+            </div>
+            <div class="panel">
+              <h2 class="panel-title">Failure scenarios</h2>
+              <div id="failure-list" class="check-list"></div>
+            </div>
+            <div class="panel">
+              <h2 class="panel-title">Optional compute</h2>
+              <label class="check-row">
+                <input id="mc-toggle" type="checkbox" />
+                <span>Conceptual Cd Monte Carlo (12 draws)</span>
+              </label>
+              <div class="btn-row">
+                <button id="download-report" type="button" class="btn btn-primary">Download report</button>
+                <button id="download-matrix" type="button" class="btn btn-ghost">Download matrix JSON</button>
+              </div>
+              <p id="run-status" class="run-status" aria-live="polite"></p>
+            </div>
+          </aside>
+
+          <div class="part450-main">
+            <div class="metrics">
+              <article class="metric">
+                <span>Nominal outcome</span>
+                <strong id="metric-outcome">—</strong>
+                <small id="metric-outcome-detail"></small>
+              </article>
+              <article class="metric">
+                <span>Conceptual Ec</span>
+                <strong id="metric-ec">—</strong>
+                <small id="metric-ec-detail"></small>
+              </article>
+              <article class="metric">
+                <span>Ec threshold</span>
+                <strong id="metric-threshold">—</strong>
+                <small>From criteria.yaml — not guessed in code</small>
+              </article>
+              <article class="metric">
+                <span>Constraint hits</span>
+                <strong id="metric-hits">—</strong>
+                <small id="metric-hits-detail"></small>
+              </article>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Ground track, recovery zone, debris impacts</h2>
+              <p class="panel-note">
+                Lon/lat sketch from the planar Sea Turtle track. Debris markers
+                are a canned fragment inventory plus optional Cd Monte Carlo —
+                conceptual, not a validated breakup model.
+              </p>
+              <svg id="ground-track" class="geo-sketch" role="img" aria-label="Ground track sketch"></svg>
+              <p class="legend">
+                <span class="swatch swatch-nom">Nominal</span>
+                <span class="swatch swatch-rec">Recovery zone</span>
+                <span class="swatch swatch-ko">Keep-out</span>
+                <span class="swatch swatch-deb">Debris / MC</span>
+                <span class="swatch swatch-off">Off-nominal</span>
+              </p>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Mission timeline / key safety events</h2>
+              <div id="events" class="badge-row"></div>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Hazard summary</h2>
+              <div class="table-scroll">
+                <table class="results leftish">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Hazard</th>
+                      <th>Phase</th>
+                      <th>Severity</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hazard-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Risk summary</h2>
+              <p class="panel-note">
+                Aircraft and maritime terms are not implemented. Individual risk
+                uses the synthetic Florida grid, not census data.
+              </p>
+              <div class="table-scroll">
+                <table class="results leftish">
+                  <thead>
+                    <tr>
+                      <th>Criterion</th>
+                      <th>Computed</th>
+                      <th>Threshold</th>
+                    </tr>
+                  </thead>
+                  <tbody id="risk-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Flight safety constraints</h2>
+              <div id="constraint-list" class="constraint-list"></div>
+            </div>
+
+            <div class="panel">
+              <h2 class="panel-title">Requirement / compliance status</h2>
+              <div class="table-scroll">
+                <table class="results leftish">
+                  <thead>
+                    <tr>
+                      <th>Citation</th>
+                      <th>Title</th>
+                      <th>STRIDE evidence</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="compliance-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p class="disclaimer">
+          <strong>Disclaimer.</strong> STRIDE is a personal engineering project
+          developed for personal learning, career, and conceptual purposes only.
+          Results should not be used for operational or safety-critical
+          applications. This Part 450 workbook does not constitute FAA approval
+          or a license application.
+        </p>
+        <p class="copyright">STRIDE · Part 450 mission safety workbook</p>
+      </div>
+    </footer>
+  </body>
+</html>

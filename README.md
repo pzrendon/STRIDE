@@ -43,6 +43,10 @@ Milestone Documents
 - [Marlin Conceptual Requirements and Product Specification](docs/marlin-conceptual-requirements.md): Defines the initial mission-design workflow, vehicle scope, physics-model boundaries, outputs, and clickable prototype acceptance criteria for Marlin.
 - [Part 450 Mission Safety Module](docs/part450-mission-safety.md): How the Sea Turtle trajectory library is wired to a Part 450-oriented hazard / risk / evidence workbook, what is actually calculated, and what is still a placeholder.
 
+Live site (GitHub Pages)
+- [STRIDE website](https://pzrendon.github.io/STRIDE/) — Sea Turtle Re-Entry Predictor
+- [Part 450 workbook](https://pzrendon.github.io/STRIDE/part450.html) — mission-safety dashboard (deploys from `main`)
+
 Marlin Web Prototype
 - The repository now includes a root-level Next.js prototype for Marlin's first rocket plus aerodynamic glide mission workflow.
 - Run `npm install` and `npm run dev` to start the local web app.

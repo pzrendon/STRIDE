@@ -118,31 +118,6 @@ function GroundTrackSketch({
   );
 }
 
-function circleLatLon(lat: number, lon: number, radiusKm: number, steps = 72): { lat: number; lon: number }[] {
-  const points: { lat: number; lon: number }[] = [];
-  const d = radiusKm / 6371;
-  const lat1 = (lat * Math.PI) / 180;
-  const lon1 = (lon * Math.PI) / 180;
-  for (let i = 0; i <= steps; i += 1) {
-    const brng = (2 * Math.PI * i) / steps;
-    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(brng));
-    const lon2 =
-      lon1 +
-      Math.atan2(Math.sin(brng) * Math.sin(d) * Math.cos(lat1), Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
-    points.push({ lat: (lat2 * 180) / Math.PI, lon: (lon2 * 180) / Math.PI });
-  }
-  return points;
-}
-
-function downloadText(filename: string, text: string, type: string) {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export function SafetyDashboard() {
   const allFailures = useMemo(() => exampleReentryFailures(), []);
