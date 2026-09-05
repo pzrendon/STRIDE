@@ -294,18 +294,39 @@ function render(assessment) {
 
 let lastAssessment = null;
 
-function rerun() {
+// The assessment reruns every Sea Turtle case synchronously on the main thread,
+// so toggling a failure freezes the tab for a beat. Flip a visible busy state
+// (disabled controls + a spinning status) and let it paint before we block, so
+// the delay reads as "working" rather than "broken".
+function setBusy(isBusy) {
+  const main = document.querySelector(".part450-main");
   const status = document.getElementById("run-status");
-  status.textContent = "Running Sea Turtle cases…";
-  // Let the status paint before we block the main thread.
-  requestAnimationFrame(() => {
-    lastAssessment = runPart450Assessment({
-      enabledIds: selectedFailureIds(),
-      monteCarlo: document.getElementById("mc-toggle").checked,
-    });
-    render(lastAssessment);
-    status.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-  });
+  const controls = document.querySelectorAll("#failure-list input, #mc-toggle");
+  if (main) main.classList.toggle("is-busy", isBusy);
+  if (main) main.setAttribute("aria-busy", isBusy ? "true" : "false");
+  status.classList.toggle("busy", isBusy);
+  for (const input of controls) input.disabled = isBusy;
+  if (isBusy) status.textContent = "Running Sea Turtle cases…";
+}
+
+function rerun() {
+  setBusy(true);
+  // Two frames: the first lets the busy state paint, the second runs the
+  // (blocking) assessment.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      try {
+        lastAssessment = runPart450Assessment({
+          enabledIds: selectedFailureIds(),
+          monteCarlo: document.getElementById("mc-toggle").checked,
+        });
+        render(lastAssessment);
+        document.getElementById("run-status").textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } finally {
+        setBusy(false);
+      }
+    }),
+  );
 }
 
 function init() {
