@@ -101,8 +101,25 @@ function drawSketch(svg, assessment) {
   const w = 900;
   const h = 420;
   const m = { l: 52, r: 16, t: 16, b: 40 };
-  const x = (lon) => m.l + ((lon - minLon) / (maxLon - minLon)) * (w - m.l - m.r);
-  const y = (lat) => m.t + ((maxLat - lat) / (maxLat - minLat)) * (h - m.t - m.b);
+  const plotW = w - m.l - m.r;
+  const plotH = h - m.t - m.b;
+
+  // Equal-aspect projection so a geographic circle (the recovery zone) reads as
+  // a circle, not an oval. Degrees of longitude shrink with latitude, so scale
+  // both axes in kilometres and use one px/km factor for x and y, letterboxing
+  // the track inside the frame.
+  const midLatRad = (((minLat + maxLat) / 2) * Math.PI) / 180;
+  const kmPerDegLat = 110.574;
+  const kmPerDegLon = 111.32 * Math.cos(midLatRad);
+  const spanKmX = Math.max((maxLon - minLon) * kmPerDegLon, 1e-6);
+  const spanKmY = Math.max((maxLat - minLat) * kmPerDegLat, 1e-6);
+  const scale = Math.min(plotW / spanKmX, plotH / spanKmY);
+  const drawnW = spanKmX * scale;
+  const drawnH = spanKmY * scale;
+  const offX = m.l + (plotW - drawnW) / 2;
+  const offY = m.t + (plotH - drawnH) / 2;
+  const x = (lon) => offX + (lon - minLon) * kmPerDegLon * scale;
+  const y = (lat) => offY + (maxLat - lat) * kmPerDegLat * scale;
 
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
   svg.replaceChildren();
@@ -139,16 +156,24 @@ function drawSketch(svg, assessment) {
     transform: `rotate(-90 16 ${h / 2})`,
   });
   ylabel.textContent = "latitude [deg]";
-  const xmin = add("text", { x: m.l, y: h - 12, fill: "#8b98a5", "font-size": 11 });
+  const xmin = add("text", { x: offX, y: h - 12, fill: "#8b98a5", "font-size": 11 });
   xmin.textContent = minLon.toFixed(1);
   const xmax = add("text", {
-    x: w - m.r,
+    x: offX + drawnW,
     y: h - 12,
     fill: "#8b98a5",
     "font-size": 11,
     "text-anchor": "end",
   });
   xmax.textContent = maxLon.toFixed(1);
+  const aspectNote = add("text", {
+    x: w - m.r,
+    y: m.t + 14,
+    fill: "#8b98a5",
+    "font-size": 11,
+    "text-anchor": "end",
+  });
+  aspectNote.textContent = "equal-aspect (1:1 km)";
 
   for (const item of series) {
     if (!item.points.length) continue;
