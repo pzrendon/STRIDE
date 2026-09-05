@@ -599,6 +599,7 @@ export function generateSafetyReport(assessment) {
     "- Planar 2-DOF no-lift Sea Turtle model.",
     "- Synthetic population. Nothing is downloaded.",
     "- P_casualty vs kinetic energy is a placeholder curve.",
+    "- Example P_f values are independent and may overlap; the Ec sum is conceptual bookkeeping and can double-count, not a mutually-exclusive event decomposition.",
     `- ${PART450_DISCLAIMER}`,
     "",
     "## 12. Part 450 Compliance / Evidence Matrix",
