@@ -93,6 +93,10 @@ export function createFlightPlayer(canvas) {
     return run?.samples?.at(-1)?.t ?? 0;
   }
 
+  function playbackEnd() {
+    return failureFor(run)?.time ?? duration();
+  }
+
   function sampleAt(time) {
     const samples = run?.samples ?? [];
     if (!samples.length) return null;
@@ -244,19 +248,21 @@ export function createFlightPlayer(canvas) {
 
     const failure = failureFor(run);
     if (failure && currentTime >= failure.time) {
+      const failedSample = sampleAt(failure.time);
+      const failedAt = position(failedSample, width, height);
       ctx.strokeStyle = COLORS.red;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 20 + Math.sin(currentTime * 0.2) * 3, 0, Math.PI * 2);
+      ctx.arc(failedAt.x, failedAt.y, 20 + Math.sin(currentTime * 0.2) * 3, 0, Math.PI * 2);
       ctx.stroke();
       ctx.fillStyle = "rgba(10,14,20,.92)";
-      ctx.fillRect(clamp(p.x - 105, 8, width - 218), clamp(p.y + 27, 8, height - 54), 210, 44);
+      ctx.fillRect(clamp(failedAt.x - 105, 8, width - 218), clamp(failedAt.y + 27, 8, height - 54), 210, 44);
       ctx.fillStyle = COLORS.red;
       ctx.font = "700 12px system-ui, sans-serif";
-      ctx.fillText(failure.label, clamp(p.x - 96, 17, width - 209), clamp(p.y + 45, 26, height - 36));
+      ctx.fillText(failure.label, clamp(failedAt.x - 96, 17, width - 209), clamp(failedAt.y + 45, 26, height - 36));
       ctx.fillStyle = COLORS.ink;
       ctx.font = "11px system-ui, sans-serif";
-      ctx.fillText("Calculated failure point", clamp(p.x - 96, 17, width - 209), clamp(p.y + 61, 42, height - 20));
+      ctx.fillText("Calculated failure point", clamp(failedAt.x - 96, 17, width - 209), clamp(failedAt.y + 61, 42, height - 20));
     }
 
     updateReadout(sample, failure);
@@ -288,9 +294,9 @@ export function createFlightPlayer(canvas) {
     const elapsed = (now - previousFrame) / 1000;
     previousFrame = now;
     const speed = Number(speedSelect.value) || 30;
-    currentTime = Math.min(duration(), currentTime + elapsed * speed);
+    currentTime = Math.min(playbackEnd(), currentTime + elapsed * speed);
     draw();
-    if (currentTime >= duration()) {
+    if (currentTime >= playbackEnd()) {
       playing = false;
       playButton.textContent = "Replay";
       return;
@@ -303,7 +309,7 @@ export function createFlightPlayer(canvas) {
     cancelAnimationFrame(frameId);
     previousFrame = 0;
     if (playing) {
-      if (currentTime >= duration()) currentTime = 0;
+      if (currentTime >= playbackEnd()) currentTime = 0;
       playButton.textContent = "Pause";
       frameId = requestAnimationFrame(tick);
     } else {
