@@ -291,6 +291,15 @@ legend {
 .inputs label:last-child {
   margin-bottom: 0;
 }
+.field-label {
+  display: inline;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.field-label sub {
+  display: inline;
+  line-height: 0;
+}
 .inputs input {
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -315,6 +324,171 @@ legend {
   font-size: 0.82rem;
   margin: 12px 0 0;
   min-height: 1.2em;
+}
+
+.step-label {
+  margin: 0 0 3px;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* CALCULATED FLIGHT PLAYER */
+.flight-section {
+  margin: -4px -4px 26px;
+  padding: 4px 4px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.result-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.result-heading .panel-note {
+  max-width: 64ch;
+}
+.flight-outcome {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.flight-outcome.is-pass {
+  color: var(--pass);
+  border-color: rgba(52, 211, 153, 0.42);
+  background: rgba(52, 211, 153, 0.08);
+}
+.flight-outcome.is-failure {
+  color: var(--fail);
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(248, 113, 113, 0.08);
+}
+.flight-stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #02050b;
+}
+#flight-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 44vw, 430px);
+}
+.flight-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(2, 5, 11, 0.72);
+  backdrop-filter: blur(6px);
+}
+.flight-overlay strong {
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+.flight-overlay span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+.flight-controls {
+  display: grid;
+  grid-template-columns: auto auto minmax(100px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+}
+.btn-compact {
+  padding: 8px 13px;
+  font-size: 0.82rem;
+}
+.scrubber-label {
+  display: flex;
+  margin: 0;
+}
+.scrubber-label input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.speed-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.speed-label select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--panel-2);
+}
+.flight-telemetry {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.flight-telemetry div {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+.flight-telemetry span,
+.flight-telemetry strong {
+  display: block;
+}
+.flight-telemetry span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.flight-telemetry strong {
+  margin-top: 2px;
+  font-size: 0.96rem;
+  font-variant-numeric: tabular-nums;
+}
+.flight-event {
+  min-height: 1.5em;
+  margin: 9px 2px 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+.flight-event::before {
+  content: "●";
+  margin-right: 7px;
+  color: var(--accent);
+}
+.flight-event.is-failure {
+  color: #fecaca;
+}
+.flight-event.is-failure::before {
+  color: var(--fail);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 /* TABLE */
@@ -368,6 +542,40 @@ legend {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 22px;
+}
+.chart-card {
+  min-width: 0;
+  margin: 0;
+}
+.chart-card figcaption {
+  padding: 8px 4px 0;
+  color: var(--muted);
+  font-size: 0.79rem;
+  line-height: 1.45;
+}
+.chart-card figcaption strong {
+  color: var(--ink);
+}
+.chart-guide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 26px 0 18px;
+}
+.chart-guide > div {
+  padding: 12px 14px;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 10px;
+  background: rgba(96, 165, 250, 0.06);
+}
+.chart-guide strong {
+  font-size: 0.82rem;
+}
+.chart-guide p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 .chart {
   width: 100%;
@@ -816,6 +1024,24 @@ legend {
     display: none;
   }
   .tool-intro {
+    flex-direction: column;
+  }
+  .flight-telemetry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chart-guide {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .flight-controls {
+    grid-template-columns: auto auto 1fr;
+  }
+  .speed-label {
+    grid-column: 1 / -1;
+  }
+  .result-heading {
     flex-direction: column;
   }
 }

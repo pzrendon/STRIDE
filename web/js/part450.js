@@ -95,7 +95,7 @@ export const MISSION = {
   cfg: {
     missionName: "STRIDE_LEO_reusable_reentry",
     payloadMassKg: 2800,
-    startAltKm: 120,
+    startAltKm: 160,
     startVelMps: 7650,
     entryAngleDeg: 3.75,
     targetLat: 28.47,

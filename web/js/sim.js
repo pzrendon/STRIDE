@@ -198,6 +198,17 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg, options = {}) {
     const last = samples[samples.length - 1];
     if (last && !force && t - last.t < 0.4) return;
     if (samples.length > maxSamples && !force) return;
+    const sampleRho = density(h);
+    const sampleArea = chuteDeployed ? pArea : sArea;
+    const sampleCd = chuteDeployed ? cfg.chuteCd : shieldCd;
+    const dragG =
+      (0.5 * sampleRho * Math.max(v, 0) ** 2 * sampleCd * sampleArea) /
+      (totalMass * C.G0);
+    const heatFluxWcm2 =
+      h < C.KARMAN_LINE && h > 0
+        ? (C.K_SG * Math.sqrt(Math.max(sampleRho, 0) / (sDia / 2)) * v ** 3) /
+          10000.0
+        : 0;
     samples.push({
       t,
       h,
@@ -208,8 +219,18 @@ export function runMasterSim(cfg, sDia, pDia, gammaInDeg, options = {}) {
       lat: latAt(crossrangeM),
       lon: lonAt(rangeM, t),
       qDyn: 0.5 * density(h) * v * v,
+      gLoad: dragG,
+      heatFluxWcm2,
       mass: totalMass,
       chuteDeployed,
+      phase:
+        h <= 0
+          ? "surface"
+          : chuteDeployed
+            ? "parachute"
+            : h > C.KARMAN_LINE
+              ? "space"
+              : "atmospheric-entry",
     });
   };
   const recordEvent = (id, label) => {
@@ -483,6 +504,23 @@ export function runStudy(cfg) {
 
   const steepest = solveSteepestAngle(cfg);
   const ae = allenEggersPeakG(cfg.startVelMps, cfg.entryAngleDeg);
+  const { shield: referenceShield, chute: referenceChute } =
+    referenceShieldChute(cfg);
+  const reference = runMasterSim(
+    cfg,
+    referenceShield,
+    referenceChute,
+    cfg.entryAngleDeg,
+    { track: true },
+  );
+  const referenceStatus =
+    reference.outcome === "landed" &&
+    reference.g <= 12.0 &&
+    reference.shock <= 12.0
+      ? "PASS"
+      : reference.outcome === "skipped"
+        ? "SKIP"
+        : "FAIL";
   return {
     rows,
     decelSeries,
@@ -492,6 +530,12 @@ export function runStudy(cfg) {
     steepestFeasible: steepest.feasible,
     shallowG: steepest.shallowG,
     allenEggersG: ae,
+    reference: {
+      ...reference,
+      shieldDiameterM: referenceShield,
+      chuteDiameterM: referenceChute,
+      status: referenceStatus,
+    },
   };
 }
 

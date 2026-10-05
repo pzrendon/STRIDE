@@ -79,12 +79,12 @@ export const PRESETS = Object.freeze([
     name: "Higher-energy return",
     level: "advanced",
     blurb:
-      "Faster LEO-band entry (~8.2 km/s from 120 km). Heating scales roughly with V³; too-shallow super-circular starts can SKIP.",
+      "Faster LEO-band entry (~8.2 km/s from 160 km). Heating scales roughly with V³; too-shallow super-circular starts can SKIP.",
     teach:
       "Sutton–Graves heat flux ∝ √ρ · V³. If Status shows SKIP, the trajectory lofted — steepen γ or lower speed.",
     values: {
       payloadMassKg: 40,
-      startAltKm: 120,
+      startAltKm: 160,
       startVelMps: 8200,
       entryAngleDeg: 5.0,
       targetLat: 28.47,
@@ -178,7 +178,8 @@ export const GLOSSARY = Object.freeze([
 /** Field-level help keyed by input element id. */
 export const FIELD_HELP = Object.freeze({
   payloadMassKg: "Dry payload mass before adding heat-shield TPS mass.",
-  startAltKm: "Initial geodetic altitude. Typical LEO returns start near 100–400 km.",
+  startAltKm:
+    "Initial geodetic altitude. LEO begins around 160 km; atmospheric entry is tracked separately at ~100 km.",
   startVelMps:
     "Inertial-ish entry speed. LEO ≈ 7.5–7.8 km/s; faster raises heat (~V³) and can SKIP if too shallow.",
   entryAngleDeg:

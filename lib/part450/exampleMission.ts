@@ -16,7 +16,7 @@ export function leoReusableReentryMission(): MissionSafetyConfig {
     ...DEFAULT_SEA_TURTLE_CONFIG,
     missionName: "STRIDE_LEO_reusable_reentry",
     payloadMassKg: 2800,
-    startAltKm: 120,
+    startAltKm: 160,
     startVelMps: 7650,
     entryAngleDeg: 3.75,
     targetLat: 28.47,
@@ -83,7 +83,7 @@ export function leoReusableReentryMission(): MissionSafetyConfig {
         phase: "entry_interface",
         kind: "entry_interface",
         timeSeconds: 0,
-        notes: "Simulation t=0 is the configured start altitude (120 km in this example)."
+        notes: "Simulation t=0 is the configured LEO altitude (160 km in this example)."
       },
       {
         id: "EV-HYPER",

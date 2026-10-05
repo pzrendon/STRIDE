@@ -7,6 +7,7 @@
 
 import { DEFAULT_CONFIG, runStudy } from "./sim.js";
 import { drawLineChart } from "./plot.js";
+import { createFlightPlayer } from "./flight-player.js";
 import {
   PRESETS,
   GLOSSARY,
@@ -19,7 +20,7 @@ import {
 // [element id, config key, min, max]
 const FIELDS = [
   ["payloadMassKg", "payloadMassKg", 0.1, 100000],
-  ["startAltKm", "startAltKm", 100, 2000],
+  ["startAltKm", "startAltKm", 160, 2000],
   ["startVelMps", "startVelMps", 100, 12000],
   ["entryAngleDeg", "entryAngleDeg", 0.1, 89],
   ["targetLat", "targetLat", -89.9, 89.9],
@@ -40,6 +41,7 @@ let mode = "learn";
 let activePresetId = "leo-capsule";
 let lastStudy = null;
 let lastCfg = null;
+let flightPlayer = null;
 
 function parseDiameterList(raw, fallback) {
   const parts = String(raw)
@@ -218,6 +220,8 @@ function renderCharts(study) {
     xLabel: "Deceleration (G)",
     yLabel: "Altitude (km)",
     series: study.decelSeries,
+    referenceX: 12,
+    referenceLabel: "12 G limit",
   });
   drawLineChart(document.getElementById("chart-thermal"), {
     title: "Thermal Flux Profile",
@@ -247,6 +251,7 @@ function run() {
     renderRecommendations(study, cfg);
     renderNarrative(study, cfg);
     renderCharts(study);
+    flightPlayer?.load(study.reference);
     updateSweepNote(cfg);
     const ms = (performance.now() - t0).toFixed(0);
     status.textContent = `Done in ${ms} ms — ${study.rows.length} configurations simulated in your browser.`;
@@ -454,6 +459,7 @@ function init() {
   renderModules();
   renderAssumptions();
   renderFieldHelp();
+  flightPlayer = createFlightPlayer(document.getElementById("flight-canvas"));
 
   document.getElementById("run-btn").addEventListener("click", run);
   document.getElementById("reset-btn").addEventListener("click", () => {

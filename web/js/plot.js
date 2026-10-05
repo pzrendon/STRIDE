@@ -16,7 +16,7 @@ function niceBounds(min, max) {
 
 /**
  * @param {HTMLCanvasElement} canvas
- * @param {{series: {label:string, x:number[], y:number[]}[], xLabel:string, yLabel:string, title:string}} opts
+ * @param {{series: {label:string, x:number[], y:number[]}[], xLabel:string, yLabel:string, title:string, referenceX?:number, referenceLabel?:string}} opts
  */
 export function drawLineChart(canvas, opts) {
   const dpr = window.devicePixelRatio || 1;
@@ -60,6 +60,10 @@ export function drawLineChart(canvas, opts) {
       if (v > yMax) yMax = v;
     }
   }
+  if (Number.isFinite(opts.referenceX)) {
+    xMin = Math.min(xMin, opts.referenceX);
+    xMax = Math.max(xMax, opts.referenceX);
+  }
   [xMin, xMax] = niceBounds(xMin, xMax);
   [yMin, yMax] = niceBounds(yMin, yMax);
 
@@ -88,6 +92,23 @@ export function drawLineChart(canvas, opts) {
     ctx.lineTo(m.left + plotW, py);
     ctx.stroke();
     ctx.fillText(yv.toFixed(0), m.left - 8, py);
+  }
+
+  if (Number.isFinite(opts.referenceX)) {
+    const px = sx(opts.referenceX);
+    ctx.save();
+    ctx.setLineDash([6, 5]);
+    ctx.strokeStyle = "#f87171";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px, m.top);
+    ctx.lineTo(px, m.top + plotH);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = "#fca5a5";
+    ctx.textAlign = px > cssW * 0.72 ? "right" : "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(opts.referenceLabel || String(opts.referenceX), px + (px > cssW * 0.72 ? -5 : 5), m.top + 28);
   }
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
