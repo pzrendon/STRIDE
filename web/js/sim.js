@@ -49,6 +49,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   tpsThickness: 0.05,
   chuteCd: 1.8,
   shieldCd: 1.5,
+  shieldDiameterM: 1.2,
+  chuteDiameterM: 3.0,
   chuteDeployAltM: 5000.0,
   shockFactorX: 1.6,
   testShieldDiams: [0.8, 1.2, 1.8],
@@ -414,10 +416,15 @@ export function runTrackedEntry(cfg, options = {}) {
 
 function referenceShieldChute(cfg) {
   const shield =
-    cfg.testShieldDiams[
-      Math.min(1, Math.max(0, cfg.testShieldDiams.length - 1))
-    ];
-  const chute = cfg.testChuteDiams[0];
+    Number.isFinite(cfg.shieldDiameterM) && cfg.shieldDiameterM > 0
+      ? cfg.shieldDiameterM
+      : cfg.testShieldDiams[
+          Math.min(1, Math.max(0, cfg.testShieldDiams.length - 1))
+        ];
+  const chute =
+    Number.isFinite(cfg.chuteDiameterM) && cfg.chuteDiameterM > 0
+      ? cfg.chuteDiameterM
+      : cfg.testChuteDiams[0];
   return { shield, chute };
 }
 
@@ -464,9 +471,17 @@ export function runStudy(cfg) {
   const rows = [];
   const decelSeries = [];
   const thermalSeries = [];
+  const { shield: referenceShield, chute: referenceChute } =
+    referenceShieldChute(cfg);
+  const shieldDiameters = [
+    ...new Set([...cfg.testShieldDiams, referenceShield]),
+  ].sort((a, b) => a - b);
+  const chuteDiameters = [
+    ...new Set([...cfg.testChuteDiams, referenceChute]),
+  ].sort((a, b) => a - b);
 
-  for (const sd of cfg.testShieldDiams) {
-    for (const pd of cfg.testChuteDiams) {
+  for (const sd of shieldDiameters) {
+    for (const pd of chuteDiameters) {
       const r = runMasterSim(cfg, sd, pd, cfg.entryAngleDeg);
       const landed = r.outcome === "landed";
       const surv =
@@ -493,9 +508,10 @@ export function runStudy(cfg) {
         allenEggersG: r.allenEggersG,
         outcome: r.outcome,
         status: surv,
+        selected: sd === referenceShield && pd === referenceChute,
       });
 
-      if (pd === cfg.testChuteDiams[0]) {
+      if (pd === referenceChute) {
         decelSeries.push({ label: `S:${sd}m`, x: r.gArr, y: r.alt });
         thermalSeries.push({ label: `S:${sd}m`, x: r.qArr, y: r.alt });
       }
@@ -504,8 +520,6 @@ export function runStudy(cfg) {
 
   const steepest = solveSteepestAngle(cfg);
   const ae = allenEggersPeakG(cfg.startVelMps, cfg.entryAngleDeg);
-  const { shield: referenceShield, chute: referenceChute } =
-    referenceShieldChute(cfg);
   const reference = runMasterSim(
     cfg,
     referenceShield,

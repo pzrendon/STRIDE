@@ -188,6 +188,10 @@ export const FIELD_HELP = Object.freeze({
   targetLon: "Landing-site longitude (deg). Positive east.",
   shieldCd: "Heat-shield drag coefficient while ballistic (pre-chute).",
   chuteCd: "Parachute drag coefficient after deploy.",
+  shieldDiameterM:
+    "Diameter of the selected heat shield. Larger area lowers ballistic coefficient and peak heat flux, but adds TPS mass.",
+  chuteDiameterM:
+    "Inflated diameter of the selected parachute. Larger area slows descent more, but increases opening shock.",
   chuteDeployAltM: "Altitude where the model switches from shield to chute aerodynamics.",
   tpsDensity: "Areal TPS density used only to compute shield mass (kg/m³).",
   tpsThickness: "Uniform shield thickness for mass estimate (m).",
@@ -225,13 +229,15 @@ export function buildNarrative(study, cfg) {
   const pass = study.rows.filter((r) => r.status === "PASS");
   const fail = study.rows.filter((r) => r.status === "FAIL");
   const skip = study.rows.filter((r) => r.status === "SKIP");
+  const selected = study.rows.find((r) => r.selected) ?? study.rows[0];
   const hottest = study.rows.reduce((a, b) => (b.q > a.q ? b : a), study.rows[0]);
   const hardest = study.rows.reduce((a, b) => (b.g > a.g ? b : a), study.rows[0]);
   const softest = study.rows.reduce((a, b) => (b.g < a.g ? b : a), study.rows[0]);
   const ae = Number(study.allenEggersG);
 
   const paragraphs = [
-    `No-lift ballistic entry from ${cfg.startAltKm} km at ${cfg.startVelMps} m/s with γ = ${cfg.entryAngleDeg}° below the horizon. The integrator marches (h, V, γ) with drag only, exponential atmosphere, and inverse-square gravity.`,
+    `Your selected ${selected.shield.toFixed(1)} m shield and ${selected.chute.toFixed(1)} m chute finished ${selected.status}: ${selected.g.toFixed(1)} G ballistic deceleration, ${selected.shock.toFixed(1)} G opening shock, and ${selected.q.toFixed(1)} W/cm² peak heat flux.`,
+    `The case starts from ${cfg.startAltKm} km at ${cfg.startVelMps} m/s with γ = ${cfg.entryAngleDeg}° below the horizon. The integrator marches (h, V, γ) with drag only, exponential atmosphere, and inverse-square gravity.`,
     `Allen–Eggers teaching check for these V, γ: ≈ ${ae.toFixed(1)} G. Numerical peaks in this sweep range ${softest.g.toFixed(1)}–${hardest.g.toFixed(1)} G (γ can steepen as the vehicle slows, so the number can exceed the closed form).`,
     `Across ${study.rows.length} shield×chute pairs, β ranged from ${Math.min(...study.rows.map((r) => r.beta)).toFixed(0)} to ${Math.max(...study.rows.map((r) => r.beta)).toFixed(0)} kg/m². Larger shields mainly cut peak heat flux (hottest here: ${hottest.q.toFixed(1)} W/cm² on the ${hottest.shield.toFixed(1)} m shield) and change chute shock.`,
   ];
@@ -253,6 +259,7 @@ export function buildNarrative(study, cfg) {
     : `No feasible ≤11.9 G corridor found near the shallow probe (≈ ${Number(study.shallowG).toFixed(1)} G).`;
 
   const takeaways = [
+    `Selected design: ${selected.status} · ${selected.shield.toFixed(1)} m shield · ${selected.chute.toFixed(1)} m chute.`,
     `${pass.length} PASS · ${fail.length} FAIL · ${skip.length} SKIP (12 G peak / chute-shock screen).`,
     corridorNote,
     `Suggested deorbit-burn longitude for Lat ${cfg.targetLat.toFixed(2)}° / Lon ${cfg.targetLon.toFixed(2)}°: ${study.deorbitLon.toFixed(2)}°.`,
@@ -260,15 +267,12 @@ export function buildNarrative(study, cfg) {
   ];
 
   let headline;
-  if (skip.length && pass.length === 0 && fail.length === 0) {
-    headline = "All cases skipped — the trajectory lofted instead of capturing.";
-  } else if (fail.length === 0 && skip.length === 0) {
-    headline = "All tested configurations stay within the 12 G proxy limits.";
-  } else if (pass.length === 0) {
-    headline =
-      "No PASS in this sweep — shallow γ to cut Max G, or resize the chute to cut opening shock.";
+  if (selected.status === "SKIP") {
+    headline = "Selected design skipped — the trajectory did not capture.";
+  } else if (selected.status === "PASS") {
+    headline = "Selected design clears both 12 G teaching screens.";
   } else {
-    headline = "Mixed results: some shield/chute pairs survive the G screen, others do not.";
+    headline = "Selected design fails at least one 12 G teaching screen.";
   }
 
   return { headline, paragraphs, takeaways };

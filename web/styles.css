@@ -280,6 +280,16 @@ legend {
   text-transform: uppercase;
   padding: 0 6px;
 }
+.fieldset-intro {
+  margin: -2px 0 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.recovery-fieldset {
+  border-color: rgba(94, 234, 212, 0.32);
+  background: rgba(94, 234, 212, 0.035);
+}
 .inputs label {
   display: flex;
   flex-direction: column;
@@ -482,6 +492,71 @@ legend {
 .flight-event.is-failure::before {
   color: var(--fail);
 }
+.decision-card {
+  margin: 0 0 24px;
+  padding: 18px;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 12px;
+  background: linear-gradient(150deg, rgba(96, 165, 250, 0.07), rgba(13, 20, 29, 0.62));
+}
+.decision-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.decision-metrics > div {
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+.decision-metrics span,
+.decision-metrics strong,
+.decision-metrics small {
+  display: block;
+}
+.decision-metrics span {
+  color: var(--muted);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.decision-metrics strong {
+  margin: 3px 0;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+.decision-metrics strong.metric-fail {
+  color: var(--fail);
+}
+.decision-metrics small {
+  color: var(--muted);
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+.decision-guidance {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: rgba(94, 234, 212, 0.06);
+}
+.decision-guidance strong {
+  color: var(--accent);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.decision-guidance p,
+.screen-caveat {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.screen-caveat {
+  margin-top: 11px;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -534,6 +609,22 @@ legend {
 .results td.skip {
   color: var(--warning, #fbbf24);
   font-weight: 700;
+}
+.results tr.is-selected td {
+  background: rgba(94, 234, 212, 0.07);
+  box-shadow: inset 0 1px rgba(94, 234, 212, 0.28), inset 0 -1px rgba(94, 234, 212, 0.28);
+}
+.results tr.is-selected td:first-child {
+  color: var(--accent);
+  font-weight: 700;
+}
+.selected-marker {
+  display: block;
+  color: var(--accent);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* CHARTS */
@@ -1029,6 +1120,9 @@ legend {
   .flight-telemetry {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .decision-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .chart-guide {
     grid-template-columns: 1fr;
   }
@@ -1043,5 +1137,8 @@ legend {
   }
   .result-heading {
     flex-direction: column;
+  }
+  .decision-metrics {
+    grid-template-columns: 1fr;
   }
 }

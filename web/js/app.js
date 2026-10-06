@@ -27,6 +27,8 @@ const FIELDS = [
   ["targetLon", "targetLon", -180, 180],
   ["shieldCd", "shieldCd", 0.1, 3],
   ["chuteCd", "chuteCd", 0.1, 3],
+  ["shieldDiameterM", "shieldDiameterM", 0.2, 30],
+  ["chuteDiameterM", "chuteDiameterM", 0.5, 100],
   ["chuteDeployAltM", "chuteDeployAltM", 100, 50000],
   ["tpsDensity", "tpsDensity", 10, 5000],
   ["tpsThickness", "tpsThickness", 0.001, 1],
@@ -132,7 +134,53 @@ function renderTable(rows) {
       }
       tr.appendChild(td);
     });
+    if (r.selected) {
+      tr.classList.add("is-selected");
+      tr.setAttribute("aria-label", "Selected design");
+      const marker = document.createElement("span");
+      marker.className = "selected-marker";
+      marker.textContent = "Selected";
+      tr.firstElementChild?.appendChild(marker);
+    }
     tbody.appendChild(tr);
+  }
+}
+
+function renderDecisionScreen(study) {
+  const run = study.reference;
+  const status = document.getElementById("decision-status");
+  const config = document.getElementById("decision-config");
+  const ballistic = document.getElementById("decision-ballistic");
+  const shock = document.getElementById("decision-shock");
+  const heat = document.getElementById("decision-heat");
+  const impact = document.getElementById("decision-impact");
+  const guidance = document.getElementById("decision-guidance");
+
+  status.textContent = run.status;
+  status.className = `flight-outcome ${run.status === "PASS" ? "is-pass" : "is-failure"}`;
+  config.textContent = `${run.shieldDiameterM.toFixed(1)} m shield · ${run.chuteDiameterM.toFixed(1)} m chute · ${lastCfg.chuteDeployAltM.toFixed(0)} m deployment`;
+  ballistic.textContent = `${run.g.toFixed(1)} G`;
+  shock.textContent = `${run.shock.toFixed(1)} G`;
+  heat.textContent = `${run.q.toFixed(1)} W/cm²`;
+  impact.textContent = `${run.impactVelocityMs.toFixed(1)} m/s`;
+  ballistic.classList.toggle("metric-fail", run.g > 12);
+  shock.classList.toggle("metric-fail", run.shock > 12);
+
+  if (run.outcome === "skipped") {
+    guidance.textContent =
+      "The vehicle did not capture. Steepen the entry angle or reduce entry velocity before tuning recovery hardware.";
+  } else if (run.outcome !== "landed") {
+    guidance.textContent =
+      `The propagation ended as “${run.outcome}.” Resolve the trajectory outcome before evaluating the recovery system.`;
+  } else if (run.g > 12) {
+    guidance.textContent =
+      "Ballistic deceleration controls. Shallow the entry angle or reduce entry speed. Shield diameter mostly shifts where the pulse occurs, so do not expect chute sizing to fix this failure.";
+  } else if (run.shock > 12) {
+    guidance.textContent =
+      "Parachute opening shock controls. Try a smaller chute or deploy higher in thinner air, then check that the resulting surface speed remains acceptable.";
+  } else {
+    guidance.textContent =
+      "This case clears the two G screens. Next, apply material-specific heat limits, qualified chute loads, landing-speed limits, dispersions, and failure probabilities.";
   }
 }
 
@@ -234,7 +282,7 @@ function renderCharts(study) {
 function updateSweepNote(cfg) {
   const note = document.getElementById("sweep-note");
   if (!note) return;
-  note.textContent = `Sweeps shield diameters [${cfg.testShieldDiams.join(", ")}] m × chute diameters [${cfg.testChuteDiams.join(", ")}] m at γ = ${cfg.entryAngleDeg}°. Charts use the first chute size.`;
+  note.textContent = `Selected: ${cfg.shieldDiameterM} m shield × ${cfg.chuteDiameterM} m chute. Research comparisons: shields [${cfg.testShieldDiams.join(", ")}] m × chutes [${cfg.testChuteDiams.join(", ")}] m at γ = ${cfg.entryAngleDeg}°.`;
 }
 
 function run() {
@@ -252,6 +300,7 @@ function run() {
     renderNarrative(study, cfg);
     renderCharts(study);
     flightPlayer?.load(study.reference);
+    renderDecisionScreen(study);
     updateSweepNote(cfg);
     const ms = (performance.now() - t0).toFixed(0);
     status.textContent = `Done in ${ms} ms — ${study.rows.length} configurations simulated in your browser.`;
@@ -268,6 +317,7 @@ function setMode(next) {
 function applyPreset(preset) {
   activePresetId = preset.id;
   writeConfig({
+    ...DEFAULT_CONFIG,
     ...preset.values,
     testShieldDiams: DEFAULT_CONFIG.testShieldDiams,
     testChuteDiams: DEFAULT_CONFIG.testChuteDiams,
